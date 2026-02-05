@@ -32,14 +32,14 @@ const F1_DRIVERS = [
   { name: "Sergio Pérez", number: 11 },
 ];
 
-// The joke: ALL options are France
+// The joke: ALL options are France — names AND flags
 const COUNTRIES = [
-  { name: "Germany", flag: "\u{1F1EB}\u{1F1F7}" },
-  { name: "United Kingdom", flag: "\u{1F1EB}\u{1F1F7}" },
-  { name: "United States", flag: "\u{1F1EB}\u{1F1F7}" },
   { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
-  { name: "Netherlands", flag: "\u{1F1EB}\u{1F1F7}" },
-  { name: "Italy", flag: "\u{1F1EB}\u{1F1F7}" },
+  { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
+  { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
+  { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
+  { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
+  { name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
 ];
 
 const WRONG_CAR_MESSAGES = [
@@ -117,16 +117,6 @@ export function AuthGate({ children }: AuthGateProps) {
     if (driver === "Max Verstappen") {
       setError(null);
       setStep("supermax");
-      // Try to speak TUTUDUDU
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance(
-          "TUDU TUDU TUDU TUDU TU. MAX VERSTAPPEN! SUPER MAX MAX MAX SUPER SUPER MAX MAX MAX!"
-        );
-        utterance.rate = 1.1;
-        utterance.pitch = 1.2;
-        utterance.volume = 1;
-        window.speechSynthesis.speak(utterance);
-      }
       // Move to step 3 after celebration
       setTimeout(() => {
         setStep(3);
@@ -299,9 +289,9 @@ export function AuthGate({ children }: AuthGateProps) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {COUNTRIES.map((country) => (
+                {COUNTRIES.map((country, i) => (
                   <button
-                    key={country.name}
+                    key={i}
                     onClick={() => handleCountryClick()}
                     className="flex items-center gap-2 p-3 rounded-xl border bg-background hover:bg-accent hover:border-foreground/20 transition-all cursor-pointer"
                   >
@@ -318,10 +308,10 @@ export function AuthGate({ children }: AuthGateProps) {
             <div className="text-center space-y-4 py-6">
               <p className="text-5xl">🇫🇷</p>
               <h2 className="text-xl sm:text-2xl font-bold">
-                They&apos;re all okay... for now
+                You, I like you.
               </h2>
               <p className="text-muted-foreground text-sm">
-                Welcome in, friend! 🤝
+                Welcome in...
               </p>
             </div>
           )}
