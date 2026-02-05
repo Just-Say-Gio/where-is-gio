@@ -34,3 +34,12 @@ export function getCachedHash(): string | null {
 export function getContentHash(content: string): string {
   return createHash("md5").update(content).digest("hex");
 }
+
+export function getCacheStatus() {
+  if (!cache) return { hasData: false, lastSynced: null, segmentCount: 0 };
+  return {
+    hasData: true,
+    lastSynced: cache.lastFetched,
+    segmentCount: cache.segments.length,
+  };
+}
