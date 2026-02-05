@@ -9,6 +9,7 @@ import { YearCalendar } from "./year-calendar";
 import { Legend } from "./legend";
 import { CountryStats } from "./country-stats";
 import { ThemeToggle } from "./theme-toggle";
+import { AuthGate } from "./auth-gate";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -39,7 +40,7 @@ export function CalendarWrapper({
   const currentSegment = getCurrentSegment(segments);
   const next = getNextSegment(segments);
 
-  return (
+  const content = (
     <TooltipProvider>
       <ThemeToggle />
 
@@ -81,11 +82,30 @@ export function CalendarWrapper({
           <p>
             Data synced from Notion &middot; Updated every 6 hours
           </p>
-          <p className="opacity-50">
-            Made with coffee and curiosity
+          <p>
+            Made with ❤️ by{" "}
+            <a
+              href="https://giovannivandam.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
+              giovannivandam.com
+            </a>
+            {" "}with tech of{" "}
+            <a
+              href="https://gvdholdings.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
+              gvdholdings.com
+            </a>
           </p>
         </footer>
       </div>
     </TooltipProvider>
   );
+
+  return <AuthGate>{content}</AuthGate>;
 }
