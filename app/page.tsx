@@ -5,6 +5,7 @@ import { generateYearDays, assignSegmentsToDays } from "@/lib/calendar-utils";
 import { CalendarWrapper } from "@/components/calendar-wrapper";
 
 export const revalidate = 21600; // 6 hours
+export const dynamic = "force-dynamic"; // skip prerender — data fetched at runtime via ISR
 
 const YEAR = 2026;
 

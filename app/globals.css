@@ -142,3 +142,12 @@
 .animate-flag-fall {
   animation: flag-fall 3s ease-in forwards;
 }
+
+@keyframes supermax-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.animate-supermax-pulse {
+  animation: supermax-pulse 0.5s ease-in-out infinite;
+}

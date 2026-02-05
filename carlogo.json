@@ -1,0 +1,64 @@
+{
+    "car_logos": [
+      {
+        "name": "BMW",
+        "imgix": "https://vl.imgix.net/img/bmw-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg",
+        "logo_dev_domain": "bmw.com"
+      },
+      {
+        "name": "Mercedes-Benz",
+        "imgix": "https://vl.imgix.net/img/mercedes-benz-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg",
+        "logo_dev_domain": "mercedes-benz.com"
+      },
+      {
+        "name": "Audi",
+        "imgix": "https://vl.imgix.net/img/audi-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg",
+        "logo_dev_domain": "audi.com"
+      },
+      {
+        "name": "Toyota",
+        "imgix": "https://vl.imgix.net/img/toyota-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Toyota.svg",
+        "logo_dev_domain": "toyota.com"
+      },
+      {
+        "name": "Honda",
+        "imgix": "https://vl.imgix.net/img/honda-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/7/76/Honda_logo2.svg",
+        "logo_dev_domain": "honda.com"
+      },
+      {
+        "name": "Renault",
+        "imgix": "https://vl.imgix.net/img/renault-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/4/49/Renault_2009_logo.svg",
+        "logo_dev_domain": "renault.com"
+      },
+      {
+        "name": "Skoda",
+        "imgix": "https://vl.imgix.net/img/skoda-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/5/5a/%C5%A0koda_Auto_logo_%282022%29.svg",
+        "logo_dev_domain": "skoda-auto.com"
+      },
+      {
+        "name": "Volkswagen",
+        "imgix": "https://vl.imgix.net/img/volkswagen-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg",
+        "logo_dev_domain": "volkswagen.com"
+      },
+      {
+        "name": "Ferrari",
+        "imgix": "https://vl.imgix.net/img/ferrari-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Scuderia_Ferrari_Logo.svg",
+        "logo_dev_domain": "ferrari.com"
+      },
+      {
+        "name": "Porsche",
+        "imgix": "https://vl.imgix.net/img/porsche-logo.png",
+        "wiki_svg": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Porsche_logo.svg",
+        "logo_dev_domain": "porsche.com"
+      }
+    ]
+  }
