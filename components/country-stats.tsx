@@ -8,36 +8,44 @@ interface CountryStatsProps {
 }
 
 export function CountryStats({ months }: CountryStatsProps) {
-  // Flatten all calendar days — each day already has its resolved segment
-  // (overlap/priority handled by assignSegmentsToDays)
   const allDays = months.flat();
+  const totalDaysInYear = allDays.length;
 
-  // Count days per country (each calendar day counted exactly once)
+  // First pass: count days per country from segments
   const countryDays = new Map<string, number>();
-  let coveredDays = 0;
+  let uncoveredDays = 0;
 
   for (const day of allDays) {
-    if (!day.segment) continue;
-    coveredDays++;
+    if (!day.segment) {
+      uncoveredDays++;
+      continue;
+    }
     const code = day.segment.countryCode;
     countryDays.set(code, (countryDays.get(code) || 0) + 1);
+  }
+
+  // Home base = country with most segment days
+  const initialSorted = [...countryDays.entries()].sort((a, b) => b[1] - a[1]);
+  const homeCode = initialSorted.length > 0 ? initialSorted[0][0] : null;
+
+  // Unassigned days = home base (if you're not traveling, you're home)
+  if (homeCode && uncoveredDays > 0) {
+    countryDays.set(homeCode, (countryDays.get(homeCode) || 0) + uncoveredDays);
   }
 
   const sorted = [...countryDays.entries()].sort((a, b) => b[1] - a[1]);
   const uniqueCountries = sorted.length;
   const maxDays = sorted.length > 0 ? sorted[0][1] : 1;
-
-  // Home base = country with most days
-  const homeCode = sorted.length > 0 ? sorted[0][0] : null;
-  const homeDays = sorted.length > 0 ? sorted[0][1] : 0;
-  const daysAbroad = coveredDays - homeDays;
+  const homeDays = homeCode ? (countryDays.get(homeCode) || 0) : 0;
+  const daysAbroad = totalDaysInYear - homeDays;
 
   // Count distinct trips abroad (a "trip" = consecutive day(s) away from home)
+  // Days without a segment = at home (not abroad)
   let trips = 0;
   let longestTripDays = 0;
   let longestTripCountry = "";
   let currentTripDays = 0;
-  let currentTripCountries = new Set<string>();
+  let currentTripCounts = new Map<string, number>();
   let wasAbroad = false;
 
   for (const day of allDays) {
@@ -46,23 +54,18 @@ export function CountryStats({ months }: CountryStatsProps) {
 
     if (abroad) {
       if (!wasAbroad) {
-        // Starting a new trip
         trips++;
         currentTripDays = 0;
-        currentTripCountries = new Set();
+        currentTripCounts = new Map();
       }
       currentTripDays++;
-      currentTripCountries.add(code!);
+      currentTripCounts.set(code!, (currentTripCounts.get(code!) || 0) + 1);
 
       if (currentTripDays > longestTripDays) {
         longestTripDays = currentTripDays;
-        // Label with the most-visited country in this trip
-        longestTripCountry = [...currentTripCountries]
-          .sort((a, b) => {
-            const aDays = allDays.filter(d => d.segment?.countryCode === a).length;
-            const bDays = allDays.filter(d => d.segment?.countryCode === b).length;
-            return bDays - aDays;
-          })[0] || code!;
+        // Label with the most-visited country within this specific trip
+        longestTripCountry = [...currentTripCounts.entries()]
+          .sort((a, b) => b[1] - a[1])[0]?.[0] || code!;
       }
     } else {
       currentTripDays = 0;
@@ -105,7 +108,7 @@ export function CountryStats({ months }: CountryStatsProps) {
       <div className="space-y-2.5 max-w-lg mx-auto">
         {sorted.map(([code, days]) => {
           const info = getCountryInfo(code);
-          const pct = Math.round((days / coveredDays) * 100);
+          const pct = Math.round((days / totalDaysInYear) * 100);
           const barWidth = Math.round((days / maxDays) * 100);
           return (
             <div key={code}>
@@ -142,7 +145,7 @@ export function CountryStats({ months }: CountryStatsProps) {
           </span>
         )}
         <span>
-          Abroad: {Math.round((daysAbroad / 365) * 100)}% of the year
+          Abroad: {Math.round((daysAbroad / totalDaysInYear) * 100)}% of the year
         </span>
       </div>
     </div>
