@@ -1,6 +1,7 @@
 import { getCachedSegments } from "@/lib/cache";
 import { getOverridesMap } from "@/lib/hosting";
 import { WhenCalendar } from "@/components/when-calendar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default function WhenPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <ThemeToggle />
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="text-center space-y-3 mb-10">
           <h1 className="text-2xl sm:text-3xl font-bold">When can I host? 🏠</h1>

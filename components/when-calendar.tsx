@@ -28,7 +28,7 @@ export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarPro
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 justify-items-center">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 justify-items-center">
       {monthsWithTH.map((monthIdx) => (
         <WhenMonth
           key={monthIdx}
@@ -81,12 +81,12 @@ function WhenMonth({
       </h3>
 
       {/* Day headers */}
-      <div className="flex gap-[3px] mb-[2px]">
-        <div className="w-[16px] shrink-0" />
+      <div className="flex gap-[2px] sm:gap-[3px] mb-[2px]">
+        <div className="w-[12px] sm:w-[16px] shrink-0" />
         {DAY_HEADERS.map((d, i) => (
           <div
             key={i}
-            className={`w-[28px] h-[14px] flex items-center justify-center text-[8px] font-medium ${
+            className={`w-[22px] sm:w-[28px] h-[14px] flex items-center justify-center text-[7px] sm:text-[8px] font-medium ${
               i >= 5 ? "text-muted-foreground/50" : "text-muted-foreground"
             }`}
           >
@@ -100,20 +100,20 @@ function WhenMonth({
         const weekNum = firstDay ? getISOWeekNumber(firstDay) : null;
 
         return (
-          <div key={rowIdx} className="flex gap-[3px] mb-[3px]">
-            <div className="w-[16px] shrink-0 flex items-center justify-center text-[8px] text-muted-foreground/40 font-medium">
+          <div key={rowIdx} className="flex gap-[2px] sm:gap-[3px] mb-[2px] sm:mb-[3px]">
+            <div className="w-[12px] sm:w-[16px] shrink-0 flex items-center justify-center text-[7px] sm:text-[8px] text-muted-foreground/40 font-medium">
               {weekNum}
             </div>
             {row.map((dateStr, cellIdx) => {
               if (!dateStr) {
-                return <div key={`e-${cellIdx}`} className="w-[28px] h-[28px]" />;
+                return <div key={`e-${cellIdx}`} className="w-[22px] h-[22px] sm:w-[28px] sm:h-[28px]" />;
               }
 
               const dayNum = parseInt(dateStr.split("-")[2]);
               const inThailand = thailandSet.has(dateStr);
               const isOverridden = overrideSet.has(dateStr);
 
-              let cellClass = "w-[28px] h-[28px] rounded-[3px] flex items-center justify-center text-[10px] font-medium relative ";
+              let cellClass = "w-[22px] h-[22px] sm:w-[28px] sm:h-[28px] rounded-[3px] flex items-center justify-center text-[9px] sm:text-[10px] font-medium relative ";
 
               if (!inThailand) {
                 cellClass += "bg-muted/30 text-muted-foreground/30";
@@ -127,7 +127,7 @@ function WhenMonth({
                 <div key={dateStr} className={cellClass}>
                   {dayNum}
                   {isOverridden && (
-                    <span className="absolute inset-0 flex items-center justify-center text-red-500/60 text-[14px] font-bold">
+                    <span className="absolute inset-0 flex items-center justify-center text-red-500/60 text-[12px] sm:text-[14px] font-bold">
                       ✕
                     </span>
                   )}
