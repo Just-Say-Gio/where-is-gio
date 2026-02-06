@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "motion/react";
-import { Grid2x2, LayoutList } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Grid2x2, LayoutList, X, MessageCircle } from "lucide-react";
 import { getMonthShortName, getStartDayOfWeek, getISOWeekNumber } from "@/lib/calendar-utils";
 
 const DAY_HEADERS = ["M", "T", "W", "T", "F", "S", "S"];
+
+const MONTH_NAMES_SHORT = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 type WhenLayout = "2col" | "1col";
 
@@ -15,11 +20,76 @@ interface WhenCalendarProps {
   overrides: string[]; // dates that are unavailable
 }
 
+/** Group sorted date strings into consecutive ranges */
+function groupDatesIntoRanges(dates: string[]): { start: string; end: string }[] {
+  if (dates.length === 0) return [];
+  const sorted = [...dates].sort();
+  const ranges: { start: string; end: string }[] = [];
+  let rangeStart = sorted[0];
+  let prev = sorted[0];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prevDate = new Date(prev + "T00:00:00");
+    const currDate = new Date(sorted[i] + "T00:00:00");
+    const diffDays = (currDate.getTime() - prevDate.getTime()) / 86400000;
+
+    if (diffDays === 1) {
+      prev = sorted[i];
+    } else {
+      ranges.push({ start: rangeStart, end: prev });
+      rangeStart = sorted[i];
+      prev = sorted[i];
+    }
+  }
+  ranges.push({ start: rangeStart, end: prev });
+  return ranges;
+}
+
+/** Format a date range for display, e.g. "1-5 Mar" or "28 Mar - 3 Apr" */
+function formatRange(range: { start: string; end: string }, year: number): string {
+  const [, sm, sd] = range.start.split("-").map(Number);
+  const [, em, ed] = range.end.split("-").map(Number);
+
+  if (range.start === range.end) {
+    return `${sd} ${MONTH_NAMES_SHORT[sm - 1]}`;
+  }
+  if (sm === em) {
+    return `${sd}-${ed} ${MONTH_NAMES_SHORT[sm - 1]}`;
+  }
+  return `${sd} ${MONTH_NAMES_SHORT[sm - 1]} - ${ed} ${MONTH_NAMES_SHORT[em - 1]}`;
+}
+
+/** Build the WhatsApp message text */
+function buildWhatsAppMessage(dates: string[], year: number): string {
+  const ranges = groupDatesIntoRanges(dates);
+  const rangeLines = ranges.map((r) => `• ${formatRange(r, year)}`).join("\n");
+  const totalDays = dates.length;
+
+  return [
+    `Hey Gio! 👋`,
+    ``,
+    `I'd love to come visit you in Hua Hin! 🏖️`,
+    ``,
+    `I'm interested in these dates (${totalDays} day${totalDays !== 1 ? "s" : ""}):`,
+    rangeLines,
+    ``,
+    `Let me know what works!`,
+  ].join("\n");
+}
+
+const WA_PHONE = "31636551497";
+
+function buildWhatsAppUrl(dates: string[], year: number): string {
+  const text = buildWhatsAppMessage(dates, year);
+  return `https://api.whatsapp.com/send/?phone=${WA_PHONE}&text=${encodeURIComponent(text)}&type=phone_number&app_absent=0`;
+}
+
 export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarProps) {
   const thSet = new Set(thailandDates);
   const overSet = new Set(overrides);
 
   const [layout, setLayout] = useState<WhenLayout>("2col");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const stored = localStorage.getItem("when-calendar-layout");
@@ -30,6 +100,20 @@ export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarPro
     setLayout(l);
     localStorage.setItem("when-calendar-layout", l);
   }, []);
+
+  const toggleDate = useCallback((dateStr: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateStr)) {
+        next.delete(dateStr);
+      } else {
+        next.add(dateStr);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
 
   // Only show months that have at least 1 Thailand date
   const monthsWithTH: number[] = [];
@@ -44,11 +128,32 @@ export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarPro
     }
   }
 
-  // Expanded = 1col on mobile (bigger cells)
+  // Available dates = in Thailand AND not overridden
+  const availableSet = useMemo(() => {
+    const s = new Set<string>();
+    for (const d of thailandDates) {
+      if (!overSet.has(d)) s.add(d);
+    }
+    return s;
+  }, [thailandDates, overSet]);
+
   const expanded = layout === "1col";
+  const selectedCount = selected.size;
+
+  // Summary for the floating bar
+  const selectionSummary = useMemo(() => {
+    if (selectedCount === 0) return "";
+    const ranges = groupDatesIntoRanges(Array.from(selected));
+    return ranges.map((r) => formatRange(r, year)).join(", ");
+  }, [selected, selectedCount, year]);
 
   return (
     <div>
+      {/* Instruction hint */}
+      <p className="text-center text-xs text-muted-foreground/60 mb-3">
+        Tap green dates to select, then send via WhatsApp
+      </p>
+
       {/* Layout toggle — mobile only */}
       <div className="flex justify-center mb-4 sm:hidden">
         <WhenLayoutToggle layout={layout} onLayoutChange={handleLayoutChange} />
@@ -66,11 +171,66 @@ export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarPro
               monthIndex={monthIdx}
               thailandSet={thSet}
               overrideSet={overSet}
+              selectedSet={selected}
+              availableSet={availableSet}
+              onToggleDate={toggleDate}
               expanded={expanded}
             />
           </motion.div>
         ))}
       </div>
+
+      {/* Spacer so floating bar doesn't cover last row */}
+      <AnimatePresence>
+        {selectedCount > 0 && <div className="h-24" />}
+      </AnimatePresence>
+
+      {/* Floating action bar */}
+      <AnimatePresence>
+        {selectedCount > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 left-4 right-4 z-50 flex justify-center"
+          >
+            <div className="bg-background/95 backdrop-blur-md border border-border shadow-lg rounded-2xl px-4 py-3 max-w-md w-full">
+              <div className="flex items-center gap-3">
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">
+                    {selectedCount} day{selectedCount !== 1 ? "s" : ""} selected
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {selectionSummary}
+                  </p>
+                </div>
+
+                {/* Clear */}
+                <button
+                  onClick={clearSelection}
+                  className="shrink-0 p-2 rounded-full hover:bg-muted transition-colors"
+                  aria-label="Clear selection"
+                >
+                  <X size={16} className="text-muted-foreground" />
+                </button>
+
+                {/* WhatsApp button */}
+                <a
+                  href={buildWhatsAppUrl(Array.from(selected), year)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 flex items-center gap-2 bg-[#25D366] hover:bg-[#20BD5A] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <MessageCircle size={16} />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -125,12 +285,18 @@ function WhenMonth({
   monthIndex,
   thailandSet,
   overrideSet,
+  selectedSet,
+  availableSet,
+  onToggleDate,
   expanded,
 }: {
   year: number;
   monthIndex: number;
   thailandSet: Set<string>;
   overrideSet: Set<string>;
+  selectedSet: Set<string>;
+  availableSet: Set<string>;
+  onToggleDate: (dateStr: string) => void;
   expanded: boolean;
 }) {
   const startDay = getStartDayOfWeek(year, monthIndex);
@@ -204,19 +370,30 @@ function WhenMonth({
               const dayNum = parseInt(dateStr.split("-")[2]);
               const inThailand = thailandSet.has(dateStr);
               const isOverridden = overrideSet.has(dateStr);
+              const isAvailable = availableSet.has(dateStr);
+              const isSelected = selectedSet.has(dateStr);
 
-              let cellClass = `${cellSize} ${cellSm} rounded-[3px] flex items-center justify-center ${cellFont} sm:text-[10px] font-medium relative `;
+              let cellClass = `${cellSize} ${cellSm} rounded-[3px] flex items-center justify-center ${cellFont} sm:text-[10px] font-medium relative transition-all `;
 
               if (!inThailand) {
                 cellClass += "bg-muted/30 text-muted-foreground/30";
               } else if (isOverridden) {
                 cellClass += "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30";
+              } else if (isSelected) {
+                cellClass += "bg-emerald-500/30 text-emerald-800 dark:text-emerald-300 ring-2 ring-emerald-500 ring-offset-1 ring-offset-background cursor-pointer";
               } else {
-                cellClass += "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30";
+                cellClass += "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 cursor-pointer hover:bg-emerald-500/25 active:scale-95";
               }
 
               return (
-                <div key={dateStr} className={cellClass}>
+                <div
+                  key={dateStr}
+                  className={cellClass}
+                  onClick={isAvailable ? () => onToggleDate(dateStr) : undefined}
+                  role={isAvailable ? "button" : undefined}
+                  tabIndex={isAvailable ? 0 : undefined}
+                  onKeyDown={isAvailable ? (e) => { if (e.key === "Enter" || e.key === " ") onToggleDate(dateStr); } : undefined}
+                >
                   {dayNum}
                   {isOverridden && (
                     <span className={`absolute inset-0 flex items-center justify-center text-red-500/60 ${crossSize} sm:text-[14px] font-bold`}>
