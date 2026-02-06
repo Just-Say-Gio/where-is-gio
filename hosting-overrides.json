@@ -1,3 +1,36 @@
 {
-  "overrides": {}
+  "overrides": {
+    "2026-03-30": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-03-31": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-01": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-02": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-03": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-04": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-05": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-06": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-07": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-08": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-09": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-10": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-11": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-12": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-13": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-14": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-15": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-16": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-17": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-18": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-19": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-20": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-21": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-22": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-23": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-24": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-25": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-26": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-27": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-28": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-29": { "available": false, "reason": "Willemijn en Kirsten in Thailand" },
+    "2026-04-30": { "available": false, "reason": "Willemijn en Kirsten in Thailand" }
+  }
 }
