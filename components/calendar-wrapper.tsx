@@ -15,6 +15,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { CalendarLayoutToggle } from "./calendar-layout-toggle";
 import { AuthGate } from "./auth-gate";
 import { GioLocator } from "./gio-locator";
+import { TextReveal } from "./ui/text-reveal";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -145,12 +146,25 @@ export function CalendarWrapper({
           </div>
         </BlurFade>
 
-        {/* GioLocator — radar distance widget + terminal init transition */}
+        {/* Transition: 2026 → GioLocator */}
+        <TextReveal>
+          So where exactly is Gio right now? Let's find out.
+        </TextReveal>
+
+        {/* GioLocator — radar distance widget */}
         <BlurFade delay={0.15} inView>
           <div className="mt-10 pt-6 border-t">
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
+              Gio Locator
+            </h2>
             <GioLocator currentSegment={currentSegment} />
           </div>
         </BlurFade>
+
+        {/* Transition: GioLocator → All-Time Stats */}
+        <TextReveal>
+          That was just 2026. Gio has been collecting passport stamps since 2022 — here is the full damage report.
+        </TextReveal>
 
         {/* 2. All-Time Flight Stats */}
         {flightAnalytics && (

@@ -194,18 +194,29 @@
     from 0deg,
     transparent 0deg,
     transparent 340deg,
-    rgba(0, 255, 136, 0.06) 350deg,
-    rgba(0, 255, 136, 0.2) 358deg,
-    #00ff88 360deg
+    oklch(0.556 0 0 / 0.06) 350deg,
+    oklch(0.556 0 0 / 0.2) 358deg,
+    oklch(0.556 0 0 / 0.5) 360deg
   );
 }
 
-/* Blip pulse (synced to sweep feel) */
-@keyframes radar-blip-pulse {
-  0%, 100% { box-shadow: 0 0 4px 1px rgba(0, 255, 136, 0.3); }
-  50% { box-shadow: 0 0 12px 4px rgba(0, 255, 136, 0.6); }
+:is(.dark) .radar-sweep {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 340deg,
+    oklch(0.708 0 0 / 0.06) 350deg,
+    oklch(0.708 0 0 / 0.2) 358deg,
+    oklch(0.708 0 0 / 0.5) 360deg
+  );
 }
 
+/* Blip pulse */
 .radar-blip {
   animation: radar-blip-pulse 3s ease-in-out infinite;
+}
+
+@keyframes radar-blip-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
 }
