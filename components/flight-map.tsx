@@ -15,7 +15,19 @@ interface FlightMapProps {
   flights: FlightRecord[];
 }
 
-const ARC_COLORS = ["#06b6d4", "#3b82f6", "#6366f1"];
+// Color per year — oldest to newest journey
+const YEAR_COLORS: Record<number, string> = {
+  2018: "#94a3b8", // slate
+  2019: "#a78bfa", // violet
+  2020: "#f87171", // red (covid year)
+  2021: "#fb923c", // orange
+  2022: "#facc15", // yellow
+  2023: "#4ade80", // green
+  2024: "#38bdf8", // sky
+  2025: "#818cf8", // indigo
+  2026: "#f472b6", // pink
+};
+const DEFAULT_COLOR = "#6366f1";
 
 const globeConfig: GlobeConfig = {
   pointSize: 4,
@@ -31,13 +43,13 @@ const globeConfig: GlobeConfig = {
   directionalLeftLight: "#ffffff",
   directionalTopLight: "#ffffff",
   pointLight: "#ffffff",
-  arcTime: 1000,
+  arcTime: 1500,
   arcLength: 0.9,
   rings: 1,
   maxRings: 3,
   initialPosition: { lat: 13.69, lng: 100.75 }, // Bangkok — home base
   autoRotate: true,
-  autoRotateSpeed: 0.5,
+  autoRotateSpeed: 0.3,
 };
 
 function calcArcAlt(
@@ -46,55 +58,54 @@ function calcArcAlt(
   lat2: number,
   lng2: number
 ): number {
-  // Higher arc for longer distances
   const dLat = Math.abs(lat1 - lat2);
   const dLng = Math.abs(lng1 - lng2);
   const dist = Math.sqrt(dLat * dLat + dLng * dLng);
-  // Scale: short ~0.1, medium ~0.3, long ~0.5
   return Math.min(0.05 + dist * 0.003, 0.6);
 }
 
 function FlightGlobeInner({ flights }: FlightMapProps) {
-  const arcs = useMemo(() => {
-    // Aggregate routes bidirectionally
-    const routeMap = new Map<
-      string,
-      { from: [number, number]; to: [number, number]; count: number }
-    >();
+  const { arcs, yearRange } = useMemo(() => {
+    // Sort flights chronologically — this creates the journey
+    const sorted = [...flights]
+      .filter((f) => AIRPORT_COORDS[f.startCity] && AIRPORT_COORDS[f.destinationCity])
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-    for (const f of flights) {
-      const fromCoords = AIRPORT_COORDS[f.startCity];
-      const toCoords = AIRPORT_COORDS[f.destinationCity];
-      if (!fromCoords || !toCoords) continue;
+    if (sorted.length === 0) return { arcs: [], yearRange: "" };
 
-      const pair = [f.startCity, f.destinationCity].sort();
-      const key = pair.join("|");
+    const firstYear = sorted[0].year;
+    const lastYear = sorted[sorted.length - 1].year;
+    const range =
+      firstYear === lastYear ? `${firstYear}` : `${firstYear}–${lastYear}`;
 
-      const existing = routeMap.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        routeMap.set(key, { from: fromCoords, to: toCoords, count: 1 });
-      }
-    }
+    // Each flight = one arc, ordered chronologically
+    // Group into waves of ~4 flights per order for smooth animation
+    const BATCH_SIZE = 4;
+    const arcData = sorted.map((f, i) => {
+      const from = AIRPORT_COORDS[f.startCity];
+      const to = AIRPORT_COORDS[f.destinationCity];
+      return {
+        order: Math.floor(i / BATCH_SIZE) + 1,
+        startLat: from[0],
+        startLng: from[1],
+        endLat: to[0],
+        endLng: to[1],
+        arcAlt: calcArcAlt(from[0], from[1], to[0], to[1]),
+        color: YEAR_COLORS[f.year] || DEFAULT_COLOR,
+      };
+    });
 
-    // Convert to arc data — assign order for staggered animation
-    const routes = [...routeMap.values()].sort((a, b) => b.count - a.count);
+    return { arcs: arcData, yearRange: range };
+  }, [flights]);
 
-    return routes.map((route, i) => ({
-      order: (i % 14) + 1,
-      startLat: route.from[0],
-      startLng: route.from[1],
-      endLat: route.to[0],
-      endLng: route.to[1],
-      arcAlt: calcArcAlt(
-        route.from[0],
-        route.from[1],
-        route.to[0],
-        route.to[1]
-      ),
-      color: ARC_COLORS[i % ARC_COLORS.length],
-    }));
+  const uniqueAirports = new Set(
+    flights.flatMap((f) => [f.startCity, f.destinationCity])
+  ).size;
+
+  // Unique years present for legend
+  const years = useMemo(() => {
+    const ys = [...new Set(flights.map((f) => f.year))].sort();
+    return ys.filter((y) => YEAR_COLORS[y]);
   }, [flights]);
 
   return (
@@ -104,17 +115,23 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
       </div>
       {/* Bottom fade */}
       <div className="absolute w-full bottom-0 inset-x-0 h-20 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-10" />
-      {/* Legend */}
+      {/* Year color legend */}
+      <div className="absolute top-2 left-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground z-20">
+        {years.map((y) => (
+          <span key={y} className="flex items-center gap-1">
+            <span
+              className="inline-block w-2 h-2 rounded-full"
+              style={{ backgroundColor: YEAR_COLORS[y] }}
+            />
+            {y}
+          </span>
+        ))}
+      </div>
+      {/* Stats legend */}
       <div className="absolute bottom-2 right-3 flex items-center gap-3 text-[10px] text-muted-foreground z-20">
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-          {new Set(flights.flatMap((f) => [f.startCity, f.destinationCity])).size}{" "}
-          airports
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block w-4 h-0.5 bg-cyan-400 rounded" />
-          {arcs.length} routes
-        </span>
+        <span>{flights.length} flights</span>
+        <span>{uniqueAirports} airports</span>
+        {yearRange && <span>{yearRange}</span>}
       </div>
     </div>
   );
