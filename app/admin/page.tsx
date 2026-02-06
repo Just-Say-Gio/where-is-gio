@@ -168,11 +168,26 @@ export default function AdminPage() {
         )}
 
         <a
-          href="/"
-          className="block text-center text-sm text-muted-foreground hover:text-foreground underline"
+          href="/admin/hosting"
+          className="block w-full py-3 px-4 rounded-xl border text-center font-semibold hover:bg-accent transition-colors"
         >
-          ← Back to calendar
+          🏠 Manage Hosting Availability
         </a>
+
+        <div className="flex justify-center gap-4">
+          <a
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground underline"
+          >
+            ← Back to calendar
+          </a>
+          <a
+            href="/when"
+            className="text-sm text-muted-foreground hover:text-foreground underline"
+          >
+            View /when page →
+          </a>
+        </div>
       </div>
     </div>
   );

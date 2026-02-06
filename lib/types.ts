@@ -19,3 +19,12 @@ export interface CacheEntry {
   lastFetched: number; // Unix timestamp ms
   contentHash: string;
 }
+
+export interface HostingOverride {
+  available: false;
+  reason: string; // private — only visible in admin
+}
+
+export interface HostingData {
+  overrides: Record<string, HostingOverride>; // key = "2026-02-15"
+}
