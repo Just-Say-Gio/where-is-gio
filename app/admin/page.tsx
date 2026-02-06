@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { AdminPinGate } from "@/components/admin-pin-gate";
 
 interface SyncStep {
   step: string;
@@ -99,6 +100,7 @@ export default function AdminPage() {
   };
 
   return (
+    <AdminPinGate>
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-card border rounded-2xl shadow-lg p-8 space-y-6">
         <div className="text-center space-y-2">
@@ -190,5 +192,6 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
+    </AdminPinGate>
   );
 }

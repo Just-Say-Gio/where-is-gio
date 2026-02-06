@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { AdminPinGate } from "@/components/admin-pin-gate";
 
 interface HostingOverride {
   available: false;
@@ -127,13 +128,16 @@ export default function HostingAdminPage() {
 
   if (loading) {
     return (
+      <AdminPinGate>
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
       </div>
+      </AdminPinGate>
     );
   }
 
   return (
+    <AdminPinGate>
     <div className="min-h-screen bg-background p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-2">
@@ -315,5 +319,6 @@ export default function HostingAdminPage() {
         </div>
       </div>
     </div>
+    </AdminPinGate>
   );
 }
