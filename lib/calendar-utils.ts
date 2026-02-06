@@ -158,8 +158,17 @@ export function getNextSegment(
 }
 
 export function getStartDayOfWeek(year: number, month: number): number {
-  // Returns 0=Sunday, 1=Monday, ... 6=Saturday
-  return new Date(year, month, 1).getDay();
+  // Returns 0=Monday, 1=Tuesday, ... 6=Sunday (Monday-start week)
+  const day = new Date(year, month, 1).getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+export function getISOWeekNumber(dateStr: string): number {
+  const date = new Date(dateStr + "T00:00:00");
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
 export function getTodayString(): string {
