@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
-import { CacheEntry, TravelSegment } from "./types";
+import { CacheEntry, TravelSegment, YearSummary } from "./types";
 
 const CACHE_FILE = join(process.cwd(), ".cache", "segments.json");
 const CACHE_TTL_MS =
@@ -37,13 +37,27 @@ export function getCachedSegments(): TravelSegment[] | null {
 
 export function setCachedSegments(
   segments: TravelSegment[],
-  contentHash: string
+  contentHash: string,
+  monthInsights?: string[],
+  yearSummary?: YearSummary
 ): void {
   writeCache({
     segments,
     lastFetched: Date.now(),
     contentHash,
+    monthInsights,
+    yearSummary,
   });
+}
+
+export function getCachedMonthInsights(): string[] | null {
+  const cache = readCache();
+  return cache?.monthInsights ?? null;
+}
+
+export function getCachedYearSummary(): YearSummary | null {
+  const cache = readCache();
+  return cache?.yearSummary ?? null;
 }
 
 export function isCacheStale(): boolean {

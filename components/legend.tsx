@@ -1,32 +1,42 @@
 "use client";
 
-import { TravelSegment } from "@/lib/types";
+import { useMemo } from "react";
+import { CalendarDay, TravelSegment } from "@/lib/types";
 import { getCountryInfo } from "@/lib/countries";
 
 interface LegendProps {
   segments: TravelSegment[];
+  months: CalendarDay[][];
   highlightCountry: string | null;
   onCountryClick: (code: string | null) => void;
 }
 
 export function Legend({
   segments,
+  months,
   highlightCountry,
   onCountryClick,
 }: LegendProps) {
-  // Get unique countries in order of appearance
-  const seen = new Set<string>();
-  const countries: string[] = [];
-  for (const seg of segments) {
-    if (!seen.has(seg.countryCode)) {
-      seen.add(seg.countryCode);
-      countries.push(seg.countryCode);
+  // Compute day counts per country from resolved calendar data
+  const countriesWithCounts = useMemo(() => {
+    const countMap = new Map<string, number>();
+    for (const month of months) {
+      for (const day of month) {
+        if (day.segment) {
+          const code = day.segment.countryCode;
+          countMap.set(code, (countMap.get(code) || 0) + 1);
+        }
+      }
     }
-  }
+    // Sort by day count descending
+    return [...countMap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([code, days]) => ({ code, days }));
+  }, [months]);
 
   return (
-    <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-      {countries.map((code) => {
+    <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
+      {countriesWithCounts.map(({ code, days }) => {
         const info = getCountryInfo(code);
         const isActive = highlightCountry === code;
 
@@ -35,12 +45,12 @@ export function Legend({
             key={code}
             onClick={() => onCountryClick(isActive ? null : code)}
             className={`
-              inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+              inline-flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs font-medium
               transition-all duration-150 cursor-pointer
               border
               ${
                 isActive
-                  ? "border-foreground shadow-sm scale-105"
+                  ? "border-foreground/50 scale-105"
                   : "border-transparent hover:border-muted-foreground/30"
               }
               ${
@@ -49,6 +59,7 @@ export function Legend({
                   : "opacity-100"
               }
             `}
+            style={isActive ? { boxShadow: `0 0 12px ${info.color}40` } : undefined}
           >
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -56,6 +67,7 @@ export function Legend({
             />
             <span>{info.flag}</span>
             <span>{info.name}</span>
+            <span className="text-muted-foreground/60 text-[10px] font-normal">{days}d</span>
           </button>
         );
       })}

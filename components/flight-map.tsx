@@ -154,17 +154,17 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
   }, [flights]);
 
   return (
-    <div className="relative w-full h-72 md:h-[28rem] rounded-xl overflow-hidden border">
+    <div className="relative w-full h-72 md:h-[28rem] rounded-xl">
       <BorderBeam size={250} duration={8} />
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 rounded-xl overflow-hidden">
         <World data={arcs} globeConfig={globeConfig} focusSequence={focusSequence} />
       </div>
       {/* Bottom fade */}
       <div className="absolute w-full bottom-0 inset-x-0 h-20 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-10" />
       {/* Year color legend */}
-      <div className="absolute top-2 left-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground z-20">
+      <div className="absolute top-2 left-3 flex flex-wrap items-center gap-1.5 z-20">
         {years.map((y) => (
-          <span key={y} className="flex items-center gap-1">
+          <span key={y} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-background/60 backdrop-blur-sm border text-[10px] text-muted-foreground">
             <span
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: YEAR_COLORS[y] }}
@@ -173,8 +173,8 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
           </span>
         ))}
       </div>
-      {/* Stats legend */}
-      <div className="absolute bottom-2 right-3 flex items-center gap-3 text-[10px] text-muted-foreground z-20">
+      {/* Stats overlay */}
+      <div className="absolute bottom-2 right-3 z-20 rounded-lg bg-background/60 backdrop-blur-sm border px-3 py-1.5 flex items-center gap-3 text-[10px] text-muted-foreground">
         <span>{flights.length} flights</span>
         <span>{uniqueAirports} airports</span>
         {yearRange && <span>{yearRange}</span>}

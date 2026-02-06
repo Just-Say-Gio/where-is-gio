@@ -1,4 +1,4 @@
-import { getCachedSegments } from "@/lib/cache";
+import { getCachedSegments, getCachedMonthInsights, getCachedYearSummary } from "@/lib/cache";
 import { getCachedFlightAnalytics } from "@/lib/flights-cache";
 import { loadVisitedCountries } from "@/lib/flights-parser";
 import { generateYearDays, assignSegmentsToDays } from "@/lib/calendar-utils";
@@ -14,6 +14,8 @@ export default async function Home() {
   const months = assignSegmentsToDays(generateYearDays(YEAR), segments);
   const flightAnalytics = getCachedFlightAnalytics();
   const visitedCountries = loadVisitedCountries();
+  const monthInsights = getCachedMonthInsights();
+  const yearSummary = getCachedYearSummary();
 
   return (
     <main className="min-h-screen bg-background">
@@ -34,6 +36,8 @@ export default async function Home() {
         year={YEAR}
         flightAnalytics={flightAnalytics}
         visitedCountries={visitedCountries}
+        monthInsights={monthInsights}
+        yearSummary={yearSummary}
       />
     </main>
   );

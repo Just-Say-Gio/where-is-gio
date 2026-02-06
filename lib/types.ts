@@ -14,10 +14,19 @@ export interface CalendarDay {
   segment?: TravelSegment;
 }
 
+export interface YearSummary {
+  personality: string;    // "The Timezone Juggler"
+  summary: string;        // Witty 1-2 sentence year overview
+  funFacts: string[];     // 3 quirky data-driven observations
+  generatedAt: number;    // Unix timestamp ms
+}
+
 export interface CacheEntry {
   segments: TravelSegment[];
   lastFetched: number; // Unix timestamp ms
   contentHash: string;
+  monthInsights?: string[]; // 12 AI-generated monthly taglines
+  yearSummary?: YearSummary;
 }
 
 export interface HostingOverride {
