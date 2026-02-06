@@ -108,10 +108,33 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
     return ys.filter((y) => YEAR_COLORS[y]);
   }, [flights]);
 
+  // Focus sequence: airports in chronological order of first visit
+  const focusSequence = useMemo(() => {
+    const sorted = [...flights]
+      .filter((f) => AIRPORT_COORDS[f.startCity] && AIRPORT_COORDS[f.destinationCity])
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    const seen = new Set<string>();
+    const points: Array<{ lat: number; lng: number }> = [];
+
+    for (const f of sorted) {
+      for (const city of [f.startCity, f.destinationCity]) {
+        if (seen.has(city)) continue;
+        seen.add(city);
+        const coords = AIRPORT_COORDS[city];
+        if (coords) {
+          points.push({ lat: coords[0], lng: coords[1] });
+        }
+      }
+    }
+
+    return points;
+  }, [flights]);
+
   return (
     <div className="relative w-full h-72 md:h-[28rem] rounded-xl overflow-hidden">
       <div className="absolute inset-0">
-        <World data={arcs} globeConfig={globeConfig} />
+        <World data={arcs} globeConfig={globeConfig} focusSequence={focusSequence} />
       </div>
       {/* Bottom fade */}
       <div className="absolute w-full bottom-0 inset-x-0 h-20 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-10" />

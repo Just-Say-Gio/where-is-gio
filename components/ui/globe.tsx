@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
-import { useThree, Canvas, extend } from "@react-three/fiber";
+import { useThree, useFrame, Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import countries from "@/data/globe.json";
 declare module "@react-three/fiber" {
@@ -58,6 +58,7 @@ export type GlobeConfig = {
 interface WorldProps {
   globeConfig: GlobeConfig;
   data: Position[];
+  focusSequence?: Array<{ lat: number; lng: number }>;
 }
 
 let numbersOfRings = [0];
@@ -246,8 +247,61 @@ export function WebGLRendererConfig() {
   return null;
 }
 
+const DEG_TO_RAD = Math.PI / 180;
+const DWELL_MS = 3500; // ms per focus point
+
+function CameraTracker({
+  focusSequence,
+}: {
+  focusSequence: Array<{ lat: number; lng: number }>;
+}) {
+  const { camera } = useThree();
+  const startTime = useRef(Date.now());
+
+  useFrame(() => {
+    if (focusSequence.length === 0) return;
+
+    const elapsed = Date.now() - startTime.current;
+    const totalCycleMs = focusSequence.length * DWELL_MS;
+    const cycleTime = elapsed % totalCycleMs;
+    const currentIdx = Math.floor(cycleTime / DWELL_MS);
+    const nextIdx = (currentIdx + 1) % focusSequence.length;
+    const progress = (cycleTime % DWELL_MS) / DWELL_MS;
+
+    const current = focusSequence[currentIdx];
+    const next = focusSequence[nextIdx];
+
+    // Convert lat/lng to spherical angles
+    const phi1 = (90 - current.lat) * DEG_TO_RAD;
+    const theta1 = current.lng * DEG_TO_RAD;
+    const phi2 = (90 - next.lat) * DEG_TO_RAD;
+    const theta2 = next.lng * DEG_TO_RAD;
+
+    // Smoothstep easing
+    const t = progress * progress * (3 - 2 * progress);
+
+    // Interpolate polar angle
+    const phi = phi1 + (phi2 - phi1) * t;
+
+    // Interpolate azimuthal angle (shortest path around sphere)
+    let dTheta = theta2 - theta1;
+    if (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+    if (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+    const theta = theta1 + dTheta * t;
+
+    // Convert spherical to cartesian camera position
+    const sinPhi = Math.sin(phi);
+    camera.position.x = cameraZ * sinPhi * Math.sin(theta);
+    camera.position.y = cameraZ * Math.cos(phi);
+    camera.position.z = cameraZ * sinPhi * Math.cos(theta);
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
 export function World(props: WorldProps) {
-  const { globeConfig } = props;
+  const { globeConfig, focusSequence } = props;
   const scene = new Scene();
   scene.fog = new Fog(0xffffff, 400, 2000);
   return (
@@ -268,16 +322,20 @@ export function World(props: WorldProps) {
         intensity={0.8}
       />
       <Globe {...props} />
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        minDistance={cameraZ}
-        maxDistance={cameraZ}
-        autoRotateSpeed={1}
-        autoRotate={true}
-        minPolarAngle={Math.PI / 3.5}
-        maxPolarAngle={Math.PI - Math.PI / 3}
-      />
+      {focusSequence && focusSequence.length > 0 ? (
+        <CameraTracker focusSequence={focusSequence} />
+      ) : (
+        <OrbitControls
+          enablePan={false}
+          enableZoom={false}
+          minDistance={cameraZ}
+          maxDistance={cameraZ}
+          autoRotateSpeed={1}
+          autoRotate={true}
+          minPolarAngle={Math.PI / 3.5}
+          maxPolarAngle={Math.PI - Math.PI / 3}
+        />
+      )}
     </Canvas>
   );
 }
