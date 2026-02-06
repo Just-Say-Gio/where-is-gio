@@ -1,6 +1,7 @@
 "use client";
 
 import { FlightAnalytics, FlightRecord } from "@/lib/types";
+import { FlightMap } from "./flight-map";
 
 interface FlightStatsProps {
   analytics: FlightAnalytics;
@@ -85,6 +86,9 @@ export function FlightStats({ analytics }: FlightStatsProps) {
 
   return (
     <div className="space-y-6">
+      {/* Flight route map */}
+      <FlightMap flights={flights} />
+
       {/* Top metrics */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-lg mx-auto">
         <div className="text-center">
