@@ -2,6 +2,8 @@
 
 import { FlightAnalytics, FlightRecord } from "@/lib/types";
 import { FlightMap } from "./flight-map";
+import { NumberTicker } from "@/components/ui/number-ticker";
+import { MagicCard } from "@/components/ui/magic-card";
 
 interface FlightStatsProps {
   analytics: FlightAnalytics;
@@ -92,22 +94,22 @@ export function FlightStats({ analytics }: FlightStatsProps) {
       {/* Top metrics */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-lg mx-auto">
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{totalFlights}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={totalFlights} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Flights</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{totalCities}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={totalCities} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Airports</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">
-            {hours}{hasPartialDuration ? "+" : ""}
+          <p className="text-2xl sm:text-3xl font-bold">
+            <NumberTicker value={hours} />{hasPartialDuration ? "+" : ""}
             <span className="text-sm font-normal text-muted-foreground">h</span>
           </p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">In the air</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{uniqueAirlines}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={uniqueAirlines} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Airlines</p>
         </div>
       </div>
@@ -115,31 +117,31 @@ export function FlightStats({ analytics }: FlightStatsProps) {
       {/* Cool facts row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
         {longestFlight && (
-          <div className="bg-muted/30 border rounded-xl px-4 py-3 text-center">
+          <MagicCard className="rounded-xl px-4 py-3 text-center" gradientColor="rgba(59,130,246,0.12)">
             <p className="text-xs text-muted-foreground mb-1">Longest flight</p>
             <p className="text-sm font-semibold">{formatDuration(longestFlight.durationMinutes)}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {longestFlight.startCity.split(" (")[0]} &rarr; {longestFlight.destinationCity.split(" (")[0]}
             </p>
-          </div>
+          </MagicCard>
         )}
         {busiestRoute && (
-          <div className="bg-muted/30 border rounded-xl px-4 py-3 text-center">
+          <MagicCard className="rounded-xl px-4 py-3 text-center" gradientColor="rgba(16,185,129,0.12)">
             <p className="text-xs text-muted-foreground mb-1">Busiest route</p>
             <p className="text-sm font-semibold">{busiestRoute[1]}x</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {busiestRoute[0].split(" - ").map(c => c.split(" (")[0]).join(" - ")}
             </p>
-          </div>
+          </MagicCard>
         )}
         {topAirport && (
-          <div className="bg-muted/30 border rounded-xl px-4 py-3 text-center">
+          <MagicCard className="rounded-xl px-4 py-3 text-center" gradientColor="rgba(139,92,246,0.12)">
             <p className="text-xs text-muted-foreground mb-1">Top airport</p>
             <p className="text-sm font-semibold">{topAirport[1]} flights</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {topAirport[0].split(" (")[0]}
             </p>
-          </div>
+          </MagicCard>
         )}
       </div>
 
@@ -171,7 +173,7 @@ export function FlightStats({ analytics }: FlightStatsProps) {
 
       {/* Airlines + Aircraft */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-        <div className="bg-muted/30 border rounded-xl p-4 space-y-1.5">
+        <MagicCard className="rounded-xl p-4 space-y-1.5" gradientColor="rgba(99,102,241,0.1)">
           <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
             Top airlines
           </h3>
@@ -181,9 +183,9 @@ export function FlightStats({ analytics }: FlightStatsProps) {
               <span className="text-muted-foreground tabular-nums shrink-0">{count}</span>
             </div>
           ))}
-        </div>
+        </MagicCard>
 
-        <div className="bg-muted/30 border rounded-xl p-4 space-y-1.5">
+        <MagicCard className="rounded-xl p-4 space-y-1.5" gradientColor="rgba(99,102,241,0.1)">
           <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-2">
             Aircraft types
           </h3>
@@ -193,7 +195,7 @@ export function FlightStats({ analytics }: FlightStatsProps) {
               <span className="text-muted-foreground tabular-nums shrink-0">{count}</span>
             </div>
           ))}
-        </div>
+        </MagicCard>
       </div>
 
       {/* Bottom row: class + reason + avg duration */}

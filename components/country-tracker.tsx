@@ -2,6 +2,7 @@
 
 import { VisitedCountriesData } from "@/lib/types";
 import { getCountryInfo } from "@/lib/countries";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface CountryTrackerProps {
   data: VisitedCountriesData;
@@ -27,8 +28,8 @@ export function CountryTracker({ data }: CountryTrackerProps) {
     <div className="space-y-6">
       {/* Big number + progress */}
       <div className="text-center">
-        <p className="text-4xl sm:text-5xl font-bold tabular-nums">
-          {totalVisited}
+        <p className="text-4xl sm:text-5xl font-bold">
+          <NumberTicker value={totalVisited} />
           <span className="text-lg sm:text-xl font-normal text-muted-foreground">/{TOTAL_COUNTRIES_WORLD}</span>
         </p>
         <p className="text-sm text-muted-foreground mt-1">

@@ -2,6 +2,7 @@
 
 import { CalendarDay } from "@/lib/types";
 import { getCountryInfo } from "@/lib/countries";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface CountryStatsProps {
   months: CalendarDay[][];
@@ -87,19 +88,19 @@ export function CountryStats({ months }: CountryStatsProps) {
       {/* Metric row */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-lg mx-auto">
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{uniqueCountries}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={uniqueCountries} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Countries</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{daysAbroad}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={daysAbroad} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Days abroad</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{trips}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={trips} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Trips</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{travelMonths.size}</p>
+          <p className="text-2xl sm:text-3xl font-bold"><NumberTicker value={travelMonths.size} /></p>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Months abroad</p>
         </div>
       </div>

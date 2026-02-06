@@ -2,6 +2,7 @@
 
 import { TravelSegment } from "@/lib/types";
 import { getCountryInfo } from "@/lib/countries";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface HeaderProps {
   currentSegment: TravelSegment | null;
@@ -46,7 +47,7 @@ export function Header({ currentSegment, nextSegment, daysUntilNext }: HeaderPro
 
         {nextSegment && nextCountryInfo && daysUntilNext !== null && daysUntilNext > 0 && (
           <p className="text-sm text-muted-foreground">
-            Next up: {nextCountryInfo.flag} {nextSegment.city || nextSegment.country} in {daysUntilNext} day{daysUntilNext !== 1 ? "s" : ""}
+            Next up: {nextCountryInfo.flag} {nextSegment.city || nextSegment.country} in <NumberTicker value={daysUntilNext} className="font-semibold text-foreground" /> day{daysUntilNext !== 1 ? "s" : ""}
           </p>
         )}
       </div>

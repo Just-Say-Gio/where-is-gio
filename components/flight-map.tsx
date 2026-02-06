@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { FlightRecord } from "@/lib/types";
 import { AIRPORT_COORDS } from "@/lib/airport-coords";
 import type { GlobeConfig } from "@/components/ui/globe";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 const World = dynamic(
   () => import("@/components/ui/globe").then((m) => m.World),
@@ -153,7 +154,8 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
   }, [flights]);
 
   return (
-    <div className="relative w-full h-72 md:h-[28rem] rounded-xl overflow-hidden">
+    <div className="relative w-full h-72 md:h-[28rem] rounded-xl overflow-hidden border">
+      <BorderBeam size={250} duration={8} />
       <div className="absolute inset-0">
         <World data={arcs} globeConfig={globeConfig} focusSequence={focusSequence} />
       </div>

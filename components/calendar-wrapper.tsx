@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { CalendarDay, TravelSegment, FlightAnalytics, VisitedCountriesData } from "@/lib/types";
 import { getCurrentSegment, getNextSegment } from "@/lib/calendar-utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BlurFade } from "@/components/ui/blur-fade";
 import { Header } from "./header";
 import { YearCalendar } from "./year-calendar";
 import { Legend } from "./legend";
@@ -51,105 +52,121 @@ export function CalendarWrapper({
       <ThemeToggle />
 
       <div className="max-w-6xl mx-auto px-4 pb-12">
-        <Header
-          currentSegment={currentSegment}
-          nextSegment={next?.segment ?? null}
-          daysUntilNext={next?.daysUntil ?? null}
-        />
-
-        <div className="mb-8">
-          <p className="text-center text-sm text-muted-foreground mb-6 font-medium tracking-widest">
-            {year}
-          </p>
-          <YearCalendar
-            year={year}
-            months={months}
-            today={today}
-            highlightCountry={highlightCountry}
+        <BlurFade delay={0.1} inView>
+          <Header
+            currentSegment={currentSegment}
+            nextSegment={next?.segment ?? null}
+            daysUntilNext={next?.daysUntil ?? null}
           />
-        </div>
+        </BlurFade>
 
-        <div className="mt-8 pt-6 border-t">
-          <Legend
-            segments={segments}
-            highlightCountry={highlightCountry}
-            onCountryClick={setHighlightCountry}
-          />
-        </div>
+        <BlurFade delay={0.2} inView>
+          <div className="mb-8">
+            <p className="text-center text-sm text-muted-foreground mb-6 font-medium tracking-widest">
+              {year}
+            </p>
+            <YearCalendar
+              year={year}
+              months={months}
+              today={today}
+              highlightCountry={highlightCountry}
+            />
+          </div>
+        </BlurFade>
 
-        <div className="mt-10 pt-6 border-t">
-          <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
-            {year} Travel Plans
-          </h2>
-          <CountryStats months={months} />
-        </div>
+        <BlurFade delay={0.3} inView>
+          <div className="mt-8 pt-6 border-t">
+            <Legend
+              segments={segments}
+              highlightCountry={highlightCountry}
+              onCountryClick={setHighlightCountry}
+            />
+          </div>
+        </BlurFade>
+
+        <BlurFade delay={0.15} inView>
+          <div className="mt-10 pt-6 border-t">
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
+              {year} Travel Plans
+            </h2>
+            <CountryStats months={months} />
+          </div>
+        </BlurFade>
 
         {/* 2. All-Time Flight Stats */}
         {flightAnalytics && (
-          <div className="mt-10 pt-6 border-t">
-            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-1 tracking-widest uppercase">
-              Flight Log
-            </h2>
-            <p className="text-center text-xs text-muted-foreground mb-5">
-              {flightAnalytics.totalFlights} flights since 2022
-            </p>
-            <FlightStats analytics={flightAnalytics} />
-          </div>
+          <BlurFade delay={0.15} inView>
+            <div className="mt-10 pt-6 border-t">
+              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-1 tracking-widest uppercase">
+                Flight Log
+              </h2>
+              <p className="text-center text-xs text-muted-foreground mb-5">
+                {flightAnalytics.totalFlights} flights since 2022
+              </p>
+              <FlightStats analytics={flightAnalytics} />
+            </div>
+          </BlurFade>
         )}
 
         {/* 3. All-Time Country Stats */}
         {visitedCountries && (
-          <div className="mt-10 pt-6 border-t">
-            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
-              Country Tracker
-            </h2>
-            <CountryTracker data={visitedCountries} />
-          </div>
+          <BlurFade delay={0.15} inView>
+            <div className="mt-10 pt-6 border-t">
+              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
+                Country Tracker
+              </h2>
+              <CountryTracker data={visitedCountries} />
+            </div>
+          </BlurFade>
         )}
 
         {/* 4. Scratch Map */}
-        <div className="mt-10 pt-6 border-t">
-          <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
-            Where Gio Has Been
-          </h2>
-          <p className="text-center text-xs text-muted-foreground mb-5">
-            Interactive map of all countries visited.
-          </p>
-          <div className="rounded-xl overflow-hidden border bg-card">
-            <iframe
-              loading="lazy"
-              src="https://share.skratch.world/sNEbrMo4UV/visited"
-              className="w-full aspect-[4/3] sm:aspect-[16/10] border-0"
-              title="Gio's Scratch Map — countries visited"
-            />
+        <BlurFade delay={0.15} inView>
+          <div className="mt-10 pt-6 border-t">
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
+              Where Gio Has Been
+            </h2>
+            <p className="text-center text-xs text-muted-foreground mb-5">
+              Interactive map of all countries visited.
+            </p>
+            <div className="rounded-xl overflow-hidden border bg-card">
+              <iframe
+                loading="lazy"
+                src="https://share.skratch.world/sNEbrMo4UV/visited"
+                className="w-full aspect-[4/3] sm:aspect-[16/10] border-0"
+                title="Gio's Scratch Map — countries visited"
+              />
+            </div>
           </div>
-        </div>
+        </BlurFade>
 
-        <footer className="mt-12 pt-6 border-t text-center text-xs text-muted-foreground space-y-1">
-          <p>
-            Data synced from Notion &middot; Updated every 6 hours
-          </p>
-          <p>
-            Made with ❤️ by{" "}
-            <a
-              href="https://giovannivandam.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              giovannivandam.com
-            </a>
-            {" "}with tech of{" "}
-            <a
-              href="https://gvdholdings.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              gvdholdings.com
-            </a>
-          </p>
-        </footer>
+        <BlurFade delay={0.15} inView>
+          <footer className="mt-12 pt-6 border-t text-center text-xs text-muted-foreground space-y-1">
+            <p>
+              Data synced from Notion &middot; Updated every 6 hours
+            </p>
+            <p>
+              Made with ❤️ by{" "}
+              <a
+                href="https://giovannivandam.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors"
+              >
+                giovannivandam.com
+              </a>
+              {" "}with tech of{" "}
+              <a
+                href="https://gvdholdings.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors"
+              >
+                gvdholdings.com
+              </a>
+            </p>
+          </footer>
+        </BlurFade>
       </div>
     </TooltipProvider>
   );
