@@ -181,3 +181,31 @@
 .animate-supermax-pulse {
   animation: supermax-pulse 0.5s ease-in-out infinite;
 }
+
+/* GioLocator radar sweep */
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.radar-sweep {
+  animation: radar-sweep 6s linear infinite;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 340deg,
+    rgba(0, 255, 136, 0.06) 350deg,
+    rgba(0, 255, 136, 0.2) 358deg,
+    #00ff88 360deg
+  );
+}
+
+/* Blip pulse (synced to sweep feel) */
+@keyframes radar-blip-pulse {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(0, 255, 136, 0.3); }
+  50% { box-shadow: 0 0 12px 4px rgba(0, 255, 136, 0.6); }
+}
+
+.radar-blip {
+  animation: radar-blip-pulse 3s ease-in-out infinite;
+}

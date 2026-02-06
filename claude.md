@@ -83,7 +83,7 @@ page.tsx (Server) — reads cache, passes data down
   |       |-- DayCell — forwardRef for Radix, status indicators, rich tooltips/mobile drawers
   |-- Legend — sorted by day count, click-to-highlight with colored glow
   |-- CountryStats — 2026 bento stats (AI badge, metrics, MagicCard grid, distribution bar, marquee)
-  |-- TextReveal — scroll-driven word-by-word transition to historic section
+  |-- GioLocator — terminal init sequence + radar distance widget (IP geolocation, haversine)
   |-- FlightStats — all-time flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
   |-- FlightMap — 3D globe with chronological flight arcs + camera tracking (frosted overlays)
   |-- CountryTracker — all-time visited countries (CircularProgressBar hero, MagicCard regions, flag marquee)
@@ -115,7 +115,7 @@ page.tsx (Server) — reads cache, passes data down
 
 ### Stats & Flights
 - **Country stats** — bento layout: AI personality badge (AnimatedShinyText), key metrics with NumberTicker, MagicCard grid (circular progress, trip/month counts, confirmation %), country distribution bar (proportional + 70/30 hover expand), destination marquee
-- **Scroll-reveal transition** — MagicUI TextReveal between 2026 stats and historic sections. Words fade in on scroll: "That was just 2026. Gio has been collecting passport stamps since 2022 — here is the full damage report."
+- **GioLocator** — Radar-style distance widget between 2026 stats and historic sections. Terminal-style boot sequence types out on scroll (monospace green-on-black: "CNTRLOGIC SYSTEMS — GIOLOCATOR v2.0", target acquired, visitor detected, distance calculated). Gio's location from `currentSegment` via `city-coords.ts` mapping. Visitor location from IP geolocation (`ipapi.co/json`). Radar shows animated conic-gradient sweep, range rings, crosshairs, center Gio dot, visitor blip positioned by haversine+bearing math. Distance readout below with glow effect. Graceful fallback if IP API blocked.
 - **Flight log** — BlurFade scroll reveals, top metrics with NumberTicker, MagicCard fact cards, AnimatedCircularProgressBar for business/leisure split, cabin & duration MagicCard, gradient year bars, route marquee
 - **3D globe** — Aceternity globe with chronological flight arcs + auto-tracking camera, frosted glass year legend pills and stats overlay
 - **Country tracker** — AnimatedCircularProgressBar hero (27% world) in MagicCard, regional breakdown in MagicCard with gradient bars, country flag marquee, AnimatedShinyText "best explored region" badge
@@ -169,6 +169,7 @@ where-is-gio/
 │   ├── day-cell.tsx              # forwardRef cell: tooltips, drawers, status indicators
 │   ├── legend.tsx                # Country pills with day counts, click highlight
 │   ├── country-stats.tsx         # 2026 bento stats (AI badge, metrics, distribution bar, marquee)
+│   ├── gio-locator.tsx           # Radar distance widget + terminal init (IP geolocation, haversine)
 │   ├── flight-stats.tsx          # Flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
 │   ├── flight-map.tsx            # 3D globe with BorderBeam + flight arcs + camera tracking + frosted overlays
 │   ├── country-tracker.tsx       # All-time visited countries (CircularProgressBar, MagicCard, flag marquee)
@@ -190,6 +191,7 @@ where-is-gio/
 │   ├── flights-cache.ts          # Flight analytics cache
 │   ├── airport-coords.ts         # Lat/lng for 37+ airports
 │   ├── city-country-map.ts       # City → country code mapping for flights
+│   ├── city-coords.ts            # City/country → [lat, lng] mapping for GioLocator
 │   └── hosting.ts                # Hosting overrides (committed JSON)
 │
 ├── hooks/

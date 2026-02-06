@@ -14,7 +14,7 @@ import { CountryTracker } from "./country-tracker";
 import { ThemeToggle } from "./theme-toggle";
 import { CalendarLayoutToggle } from "./calendar-layout-toggle";
 import { AuthGate } from "./auth-gate";
-import { TextReveal } from "./ui/text-reveal";
+import { GioLocator } from "./gio-locator";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -145,10 +145,12 @@ export function CalendarWrapper({
           </div>
         </BlurFade>
 
-        {/* Scroll-reveal transition to historic section */}
-        <TextReveal>
-          That was just 2026. Gio has been collecting passport stamps since 2022 — here is the full damage report.
-        </TextReveal>
+        {/* GioLocator — radar distance widget + terminal init transition */}
+        <BlurFade delay={0.15} inView>
+          <div className="mt-10 pt-6 border-t">
+            <GioLocator currentSegment={currentSegment} />
+          </div>
+        </BlurFade>
 
         {/* 2. All-Time Flight Stats */}
         {flightAnalytics && (
