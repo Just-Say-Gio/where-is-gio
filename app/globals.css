@@ -182,41 +182,22 @@
   animation: supermax-pulse 0.5s ease-in-out infinite;
 }
 
-/* GioLocator radar sweep */
+/* GioLocator radar sweep — background set inline via style (accent color) */
 @keyframes radar-sweep {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
 .radar-sweep {
-  animation: radar-sweep 6s linear infinite;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 340deg,
-    oklch(0.556 0 0 / 0.06) 350deg,
-    oklch(0.556 0 0 / 0.2) 358deg,
-    oklch(0.556 0 0 / 0.5) 360deg
-  );
+  animation: radar-sweep 5s linear infinite;
 }
 
-:is(.dark) .radar-sweep {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 340deg,
-    oklch(0.708 0 0 / 0.06) 350deg,
-    oklch(0.708 0 0 / 0.2) 358deg,
-    oklch(0.708 0 0 / 0.5) 360deg
-  );
-}
-
-/* Blip pulse */
-.radar-blip {
-  animation: radar-blip-pulse 3s ease-in-out infinite;
-}
-
+/* Blip scale pulse */
 @keyframes radar-blip-pulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.radar-blip {
+  animation: radar-blip-pulse 2s ease-in-out infinite;
 }

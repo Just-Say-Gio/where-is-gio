@@ -148,7 +148,7 @@ export function CalendarWrapper({
 
         {/* Transition: 2026 → GioLocator */}
         <TextReveal>
-          So where exactly is Gio right now? Let's find out.
+          Now you know the plan — but where exactly is Gio right now?
         </TextReveal>
 
         {/* GioLocator — radar distance widget */}
@@ -163,7 +163,7 @@ export function CalendarWrapper({
 
         {/* Transition: GioLocator → All-Time Stats */}
         <TextReveal>
-          That was just 2026. Gio has been collecting passport stamps since 2022 — here is the full damage report.
+          But 2026 is just one chapter. Gio has been collecting passport stamps since 2022 — here is the full picture.
         </TextReveal>
 
         {/* 2. All-Time Flight Stats */}
