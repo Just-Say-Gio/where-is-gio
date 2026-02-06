@@ -1,49 +1,72 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Line,
-  Marker,
-} from "react-simple-maps";
+import { memo, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { FlightRecord } from "@/lib/types";
 import { AIRPORT_COORDS } from "@/lib/airport-coords";
+import type { GlobeConfig } from "@/components/ui/globe";
 
-const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json";
+const World = dynamic(
+  () => import("@/components/ui/globe").then((m) => m.World),
+  { ssr: false }
+);
 
 interface FlightMapProps {
   flights: FlightRecord[];
 }
 
-interface RouteData {
-  from: [number, number]; // [lat, lng]
-  to: [number, number];
-  count: number;
-  key: string;
+const ARC_COLORS = ["#06b6d4", "#3b82f6", "#6366f1"];
+
+const globeConfig: GlobeConfig = {
+  pointSize: 4,
+  globeColor: "#062056",
+  showAtmosphere: true,
+  atmosphereColor: "#FFFFFF",
+  atmosphereAltitude: 0.1,
+  emissive: "#062056",
+  emissiveIntensity: 0.1,
+  shininess: 0.9,
+  polygonColor: "rgba(255,255,255,0.7)",
+  ambientLight: "#38bdf8",
+  directionalLeftLight: "#ffffff",
+  directionalTopLight: "#ffffff",
+  pointLight: "#ffffff",
+  arcTime: 1000,
+  arcLength: 0.9,
+  rings: 1,
+  maxRings: 3,
+  initialPosition: { lat: 13.69, lng: 100.75 }, // Bangkok — home base
+  autoRotate: true,
+  autoRotateSpeed: 0.5,
+};
+
+function calcArcAlt(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  // Higher arc for longer distances
+  const dLat = Math.abs(lat1 - lat2);
+  const dLng = Math.abs(lng1 - lng2);
+  const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+  // Scale: short ~0.1, medium ~0.3, long ~0.5
+  return Math.min(0.05 + dist * 0.003, 0.6);
 }
 
-interface AirportData {
-  name: string;
-  coords: [number, number];
-  flights: number;
-}
-
-function FlightMapInner({ flights }: FlightMapProps) {
-  const [tooltip, setTooltip] = useState<string | null>(null);
-
-  const { routes, airports } = useMemo(() => {
-    // Aggregate routes
-    const routeMap = new Map<string, RouteData>();
-    const airportMap = new Map<string, AirportData>();
+function FlightGlobeInner({ flights }: FlightMapProps) {
+  const arcs = useMemo(() => {
+    // Aggregate routes bidirectionally
+    const routeMap = new Map<
+      string,
+      { from: [number, number]; to: [number, number]; count: number }
+    >();
 
     for (const f of flights) {
       const fromCoords = AIRPORT_COORDS[f.startCity];
       const toCoords = AIRPORT_COORDS[f.destinationCity];
       if (!fromCoords || !toCoords) continue;
 
-      // Route key (sorted so A→B and B→A are the same route)
       const pair = [f.startCity, f.destinationCity].sort();
       const key = pair.join("|");
 
@@ -51,133 +74,50 @@ function FlightMapInner({ flights }: FlightMapProps) {
       if (existing) {
         existing.count++;
       } else {
-        routeMap.set(key, {
-          from: fromCoords,
-          to: toCoords,
-          count: 1,
-          key,
-        });
-      }
-
-      // Airports
-      for (const city of [f.startCity, f.destinationCity]) {
-        const coords = AIRPORT_COORDS[city];
-        if (!coords) continue;
-        const ap = airportMap.get(city);
-        if (ap) {
-          ap.flights++;
-        } else {
-          airportMap.set(city, {
-            name: city.split(" (")[0],
-            coords,
-            flights: 1,
-          });
-        }
+        routeMap.set(key, { from: fromCoords, to: toCoords, count: 1 });
       }
     }
 
-    return {
-      routes: [...routeMap.values()].sort((a, b) => a.count - b.count),
-      airports: [...airportMap.values()].sort((a, b) => a.flights - b.flights),
-    };
+    // Convert to arc data — assign order for staggered animation
+    const routes = [...routeMap.values()].sort((a, b) => b.count - a.count);
+
+    return routes.map((route, i) => ({
+      order: (i % 14) + 1,
+      startLat: route.from[0],
+      startLng: route.from[1],
+      endLat: route.to[0],
+      endLng: route.to[1],
+      arcAlt: calcArcAlt(
+        route.from[0],
+        route.from[1],
+        route.to[0],
+        route.to[1]
+      ),
+      color: ARC_COLORS[i % ARC_COLORS.length],
+    }));
   }, [flights]);
 
-  const maxCount = Math.max(...routes.map((r) => r.count), 1);
-  const maxAirportFlights = Math.max(...airports.map((a) => a.flights), 1);
-
   return (
-    <div className="relative rounded-xl overflow-hidden border bg-card">
-      <ComposableMap
-        projection="geoNaturalEarth1"
-        projectionConfig={{
-          scale: 140,
-          center: [40, 20],
-        }}
-        width={800}
-        height={400}
-        style={{ width: "100%", height: "auto" }}
-      >
-        {/* Land masses */}
-        <Geographies geography={GEO_URL}>
-          {({ geographies }) =>
-            geographies.map((geo) => (
-              <Geography
-                key={geo.rpiKey}
-                geography={geo}
-                fill="hsl(var(--muted))"
-                stroke="hsl(var(--border))"
-                strokeWidth={0.5}
-                style={{
-                  default: { outline: "none" },
-                  hover: { outline: "none" },
-                  pressed: { outline: "none" },
-                }}
-              />
-            ))
-          }
-        </Geographies>
-
-        {/* Flight routes */}
-        {routes.map((route) => {
-          const intensity = 0.15 + (route.count / maxCount) * 0.6;
-          const width = 0.5 + (route.count / maxCount) * 2;
-          return (
-            <Line
-              key={route.key}
-              from={[route.from[1], route.from[0]]}
-              to={[route.to[1], route.to[0]]}
-              stroke={`rgba(59, 130, 246, ${intensity})`}
-              strokeWidth={width}
-              strokeLinecap="round"
-            />
-          );
-        })}
-
-        {/* Airport dots */}
-        {airports.map((airport) => {
-          const size = 2 + (airport.flights / maxAirportFlights) * 4;
-          return (
-            <Marker
-              key={airport.name}
-              coordinates={[airport.coords[1], airport.coords[0]]}
-              onMouseEnter={() =>
-                setTooltip(`${airport.name} — ${airport.flights} flights`)
-              }
-              onMouseLeave={() => setTooltip(null)}
-            >
-              <circle
-                r={size}
-                fill="rgb(59, 130, 246)"
-                stroke="hsl(var(--background))"
-                strokeWidth={1}
-                opacity={0.9}
-                className="cursor-pointer"
-              />
-            </Marker>
-          );
-        })}
-      </ComposableMap>
-
-      {/* Tooltip */}
-      {tooltip && (
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-popover border text-xs shadow-sm">
-          {tooltip}
-        </div>
-      )}
-
+    <div className="relative w-full h-72 md:h-[28rem] rounded-xl overflow-hidden">
+      <div className="absolute inset-0">
+        <World data={arcs} globeConfig={globeConfig} />
+      </div>
+      {/* Bottom fade */}
+      <div className="absolute w-full bottom-0 inset-x-0 h-20 bg-gradient-to-b pointer-events-none select-none from-transparent to-background z-10" />
       {/* Legend */}
-      <div className="absolute bottom-2 right-2 flex items-center gap-3 text-[10px] text-muted-foreground">
+      <div className="absolute bottom-2 right-3 flex items-center gap-3 text-[10px] text-muted-foreground z-20">
         <span className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
-          {airports.length} airports
+          {new Set(flights.flatMap((f) => [f.startCity, f.destinationCity])).size}{" "}
+          airports
         </span>
         <span className="flex items-center gap-1">
-          <span className="inline-block w-4 h-0.5 bg-blue-500 rounded" />
-          {routes.length} routes
+          <span className="inline-block w-4 h-0.5 bg-cyan-400 rounded" />
+          {arcs.length} routes
         </span>
       </div>
     </div>
   );
 }
 
-export const FlightMap = memo(FlightMapInner);
+export const FlightMap = memo(FlightGlobeInner);
