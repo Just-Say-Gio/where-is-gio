@@ -81,7 +81,7 @@ export function CalendarWrapper({
           <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
             {year} Travel Plans
           </h2>
-          <CountryStats segments={segments} />
+          <CountryStats months={months} />
         </div>
 
         {/* 2. All-Time Flight Stats */}
