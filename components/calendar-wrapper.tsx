@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDay, TravelSegment, FlightAnalytics } from "@/lib/types";
+import { CalendarDay, TravelSegment, FlightAnalytics, VisitedCountriesData } from "@/lib/types";
 import { getCurrentSegment, getNextSegment } from "@/lib/calendar-utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "./header";
@@ -9,6 +9,7 @@ import { YearCalendar } from "./year-calendar";
 import { Legend } from "./legend";
 import { CountryStats } from "./country-stats";
 import { FlightStats } from "./flight-stats";
+import { CountryTracker } from "./country-tracker";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthGate } from "./auth-gate";
 
@@ -17,6 +18,7 @@ interface CalendarWrapperProps {
   months: CalendarDay[][];
   year: number;
   flightAnalytics: FlightAnalytics | null;
+  visitedCountries: VisitedCountriesData | null;
 }
 
 export function CalendarWrapper({
@@ -24,6 +26,7 @@ export function CalendarWrapper({
   months,
   year,
   flightAnalytics,
+  visitedCountries,
 }: CalendarWrapperProps) {
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [today, setToday] = useState<string>("");
@@ -81,26 +84,36 @@ export function CalendarWrapper({
           <CountryStats segments={segments} />
         </div>
 
-        {/* All-Time Travel Analytics */}
+        {/* 2. All-Time Flight Stats */}
         {flightAnalytics && (
           <div className="mt-10 pt-6 border-t">
-            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
-              All-Time Travel
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-1 tracking-widest uppercase">
+              Flight Log
             </h2>
             <p className="text-center text-xs text-muted-foreground mb-5">
-              {flightAnalytics.totalFlights} flights tracked since 2022
+              {flightAnalytics.totalFlights} flights since 2022
             </p>
             <FlightStats analytics={flightAnalytics} />
           </div>
         )}
 
-        {/* Scratch Map */}
+        {/* 3. All-Time Country Stats */}
+        {visitedCountries && (
+          <div className="mt-10 pt-6 border-t">
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
+              Country Tracker
+            </h2>
+            <CountryTracker data={visitedCountries} />
+          </div>
+        )}
+
+        {/* 4. Scratch Map */}
         <div className="mt-10 pt-6 border-t">
           <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
             Where Gio Has Been
           </h2>
           <p className="text-center text-xs text-muted-foreground mb-5">
-            All countries visited, ever.
+            Interactive map of all countries visited.
           </p>
           <div className="rounded-xl overflow-hidden border bg-card">
             <iframe

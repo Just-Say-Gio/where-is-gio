@@ -1,5 +1,6 @@
 import { getCachedSegments } from "@/lib/cache";
 import { getCachedFlightAnalytics } from "@/lib/flights-cache";
+import { loadVisitedCountries } from "@/lib/flights-parser";
 import { generateYearDays, assignSegmentsToDays } from "@/lib/calendar-utils";
 import { CalendarWrapper } from "@/components/calendar-wrapper";
 
@@ -12,6 +13,7 @@ export default async function Home() {
   const segments = getCachedSegments() ?? [];
   const months = assignSegmentsToDays(generateYearDays(YEAR), segments);
   const flightAnalytics = getCachedFlightAnalytics();
+  const visitedCountries = loadVisitedCountries();
 
   return (
     <main className="min-h-screen bg-background">
@@ -26,7 +28,13 @@ export default async function Home() {
           </div>
         </div>
       )}
-      <CalendarWrapper segments={segments} months={months} year={YEAR} flightAnalytics={flightAnalytics} />
+      <CalendarWrapper
+        segments={segments}
+        months={months}
+        year={YEAR}
+        flightAnalytics={flightAnalytics}
+        visitedCountries={visitedCountries}
+      />
     </main>
   );
 }

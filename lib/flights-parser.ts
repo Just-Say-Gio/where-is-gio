@@ -146,7 +146,7 @@ export function parseFlightsCSV(): { analytics: FlightAnalytics; csvHash: string
   return { analytics, csvHash };
 }
 
-function loadVisitedCountries(): VisitedCountriesData | null {
+export function loadVisitedCountries(): VisitedCountriesData | null {
   try {
     if (!existsSync(VISITED_PATH)) return null;
     const raw = readFileSync(VISITED_PATH, "utf-8");
