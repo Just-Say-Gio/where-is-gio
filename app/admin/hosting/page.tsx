@@ -309,7 +309,7 @@ export default function HostingAdminPage() {
           <a href="/admin" className="text-sm text-muted-foreground hover:text-foreground underline">
             ← Back to admin
           </a>
-          <a href="/when" className="text-sm text-muted-foreground hover:text-foreground underline">
+          <a href="/when-can-I-stay" className="text-sm text-muted-foreground hover:text-foreground underline">
             View public page →
           </a>
         </div>

@@ -182,10 +182,10 @@ export default function AdminPage() {
             ← Back to calendar
           </a>
           <a
-            href="/when"
+            href="/when-can-I-stay"
             className="text-sm text-muted-foreground hover:text-foreground underline"
           >
-            View /when page →
+            View /when-can-I-stay →
           </a>
         </div>
       </div>
