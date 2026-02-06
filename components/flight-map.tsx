@@ -95,6 +95,24 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
       };
     });
 
+    // Background filler arcs — random flights to keep globe visually busy
+    const maxOrder = Math.ceil(sorted.length / BATCH_SIZE) + 1;
+    const FILLER_COUNT = Math.min(sorted.length, 60);
+    for (let i = 0; i < FILLER_COUNT; i++) {
+      const f = sorted[Math.floor(Math.random() * sorted.length)];
+      const from = AIRPORT_COORDS[f.startCity];
+      const to = AIRPORT_COORDS[f.destinationCity];
+      arcData.push({
+        order: Math.floor(Math.random() * maxOrder) + maxOrder,
+        startLat: from[0],
+        startLng: from[1],
+        endLat: to[0],
+        endLng: to[1],
+        arcAlt: calcArcAlt(from[0], from[1], to[0], to[1]),
+        color: YEAR_COLORS[f.year] || DEFAULT_COLOR,
+      });
+    }
+
     return { arcs: arcData, yearRange: range };
   }, [flights]);
 
@@ -108,24 +126,27 @@ function FlightGlobeInner({ flights }: FlightMapProps) {
     return ys.filter((y) => YEAR_COLORS[y]);
   }, [flights]);
 
-  // Focus sequence: airports in chronological order of first visit
+  // Focus sequence: every flight hop node-to-node (full journey)
   const focusSequence = useMemo(() => {
     const sorted = [...flights]
       .filter((f) => AIRPORT_COORDS[f.startCity] && AIRPORT_COORDS[f.destinationCity])
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    const seen = new Set<string>();
     const points: Array<{ lat: number; lng: number }> = [];
 
     for (const f of sorted) {
-      for (const city of [f.startCity, f.destinationCity]) {
-        if (seen.has(city)) continue;
-        seen.add(city);
-        const coords = AIRPORT_COORDS[city];
-        if (coords) {
-          points.push({ lat: coords[0], lng: coords[1] });
-        }
+      const from = AIRPORT_COORDS[f.startCity];
+      const to = AIRPORT_COORDS[f.destinationCity];
+
+      // Add departure (skip if same as previous point)
+      const fromPt = { lat: from[0], lng: from[1] };
+      const last = points[points.length - 1];
+      if (!last || last.lat !== fromPt.lat || last.lng !== fromPt.lng) {
+        points.push(fromPt);
       }
+
+      // Always add arrival
+      points.push({ lat: to[0], lng: to[1] });
     }
 
     return points;

@@ -248,7 +248,7 @@ export function WebGLRendererConfig() {
 }
 
 const DEG_TO_RAD = Math.PI / 180;
-const DWELL_MS = 3500; // ms per focus point
+const DWELL_MS = 2000; // ms per focus point (faster pacing for node-to-node hops)
 
 function CameraTracker({
   focusSequence,
