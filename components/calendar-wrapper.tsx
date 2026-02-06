@@ -78,6 +78,24 @@ export function CalendarWrapper({
           <CountryStats segments={segments} />
         </div>
 
+        {/* Scratch Map */}
+        <div className="mt-10 pt-6 border-t">
+          <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
+            Where Gio Has Been
+          </h2>
+          <p className="text-center text-xs text-muted-foreground mb-5">
+            All countries visited, ever.
+          </p>
+          <div className="rounded-xl overflow-hidden border bg-card">
+            <iframe
+              loading="lazy"
+              src="https://share.skratch.world/sNEbrMo4UV/visited"
+              className="w-full aspect-[4/3] sm:aspect-[16/10] border-0"
+              title="Gio's Scratch Map — countries visited"
+            />
+          </div>
+        </div>
+
         <footer className="mt-12 pt-6 border-t text-center text-xs text-muted-foreground space-y-1">
           <p>
             Data synced from Notion &middot; Updated every 6 hours
