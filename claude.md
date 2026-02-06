@@ -84,9 +84,9 @@ page.tsx (Server) — reads cache, passes data down
   |-- Legend — sorted by day count, click-to-highlight with colored glow
   |-- CountryStats — 2026 bento stats (AI badge, metrics, MagicCard grid, distribution bar, marquee)
   |-- TextReveal — scroll-driven word-by-word transition to historic section
-  |-- FlightStats — all-time flight analytics with MagicCard hover cards
-  |-- FlightMap — 3D globe with chronological flight journey + camera tracking
-  |-- CountryTracker — 53/195 countries visited with NumberTicker
+  |-- FlightStats — all-time flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
+  |-- FlightMap — 3D globe with chronological flight arcs + camera tracking (frosted overlays)
+  |-- CountryTracker — all-time visited countries (CircularProgressBar hero, MagicCard regions, flag marquee)
   |-- Scratch Map — embedded Skratch.world iframe
 ```
 
@@ -116,9 +116,9 @@ page.tsx (Server) — reads cache, passes data down
 ### Stats & Flights
 - **Country stats** — bento layout: AI personality badge (AnimatedShinyText), key metrics with NumberTicker, MagicCard grid (circular progress, trip/month counts, confirmation %), country distribution bar (proportional + 70/30 hover expand), destination marquee
 - **Scroll-reveal transition** — MagicUI TextReveal between 2026 stats and historic sections. Words fade in on scroll: "That was just 2026. Gio has been collecting passport stamps since 2022 — here is the full damage report."
-- **Flight log** — MagicCard hover cards with NumberTicker (flights, hours, countries, cities)
-- **3D globe** — Aceternity globe with chronological flight arcs + auto-tracking camera
-- **Country tracker** — all-time visited countries by region with progress bars
+- **Flight log** — BlurFade scroll reveals, top metrics with NumberTicker, MagicCard fact cards, AnimatedCircularProgressBar for business/leisure split, cabin & duration MagicCard, gradient year bars, route marquee
+- **3D globe** — Aceternity globe with chronological flight arcs + auto-tracking camera, frosted glass year legend pills and stats overlay
+- **Country tracker** — AnimatedCircularProgressBar hero (27% world) in MagicCard, regional breakdown in MagicCard with gradient bars, country flag marquee, AnimatedShinyText "best explored region" badge
 
 ### Other
 - **Dark mode** with localStorage persistence and flash prevention
@@ -169,9 +169,9 @@ where-is-gio/
 │   ├── day-cell.tsx              # forwardRef cell: tooltips, drawers, status indicators
 │   ├── legend.tsx                # Country pills with day counts, click highlight
 │   ├── country-stats.tsx         # 2026 bento stats (AI badge, metrics, distribution bar, marquee)
-│   ├── flight-stats.tsx          # Flight analytics with MagicCard
-│   ├── flight-map.tsx            # 3D globe with BorderBeam + flight arcs + camera tracking
-│   ├── country-tracker.tsx       # All-time visited countries
+│   ├── flight-stats.tsx          # Flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
+│   ├── flight-map.tsx            # 3D globe with BorderBeam + flight arcs + camera tracking + frosted overlays
+│   ├── country-tracker.tsx       # All-time visited countries (CircularProgressBar, MagicCard, flag marquee)
 │   ├── auth-gate.tsx             # Friends-only quiz gate
 │   ├── admin-pin-gate.tsx        # PIN-based admin authentication
 │   ├── when-calendar.tsx         # Thailand hosting availability calendar
