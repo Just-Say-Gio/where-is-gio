@@ -28,3 +28,56 @@ export interface HostingOverride {
 export interface HostingData {
   overrides: Record<string, HostingOverride>; // key = "2026-02-15"
 }
+
+// Flight analytics types
+
+export interface FlightRecord {
+  date: string;            // "2024-05-07" (normalized from DD-MM-YYYY)
+  year: number;
+  startCity: string;
+  destinationCity: string;
+  airline: string;
+  aircraft: string;
+  reason: string;          // "Leisure" | "Business"
+  seatClass: string;       // "Economy Class" | "Premium Economy" | "First Class"
+  seatNumber: string;
+  durationMinutes: number;
+}
+
+export interface VisitedRegion {
+  visited: number;
+  total: number;
+  countries: { code: string; name: string; regions?: number }[];
+}
+
+export interface VisitedCountriesData {
+  totalVisited: number;
+  regions: Record<string, VisitedRegion>;
+  allCodes: string[];               // flat list of all visited country codes
+}
+
+export interface FlightAnalytics {
+  totalFlights: number;
+  flights: FlightRecord[];
+  totalCountries: number;
+  countriesVisited: string[];       // country codes (from flights)
+  totalCities: number;
+  citiesVisited: string[];
+  totalFlightHours: number;
+  totalFlightMinutes: number;
+  flightsByYear: Record<string, number>;
+  flightsByAirline: Record<string, number>;
+  flightsByAircraftFamily: Record<string, number>;
+  flightsByReason: Record<string, number>;
+  flightsByClass: Record<string, number>;
+  cityCountryMap: Record<string, string>;
+  // From visited-countries.json
+  visitedCountries: VisitedCountriesData | null;
+}
+
+export interface FlightsCacheEntry {
+  analytics: FlightAnalytics;
+  lastParsed: number;
+  csvHash: string;
+  recordCount: number;
+}

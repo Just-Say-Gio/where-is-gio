@@ -1,0 +1,83 @@
+Date,Start,Destination,Airline,Aircraft,Reason,Class,Seat Number,Duration
+04-07-2022,Dubai,Amsterdam,Emirates Airlines,Airbus A380-800,Leisure,Economy Class,,00:00
+08-08-2022,London,Amsterdam,KLM,Embraer E195-E2,Leisure,Economy Class,,00:00
+30-10-2022,Bangkok,Taoyuan (Dayuan),China Airlines,Airbus A350-900,Business,Economy Class,,00:00
+23-07-2023,Bangkok,Phuket,Vietjet Air,Airbus A320,Leisure,Economy Class,,00:00
+25-07-2023,Bangkok,Kuala Lumpur,AirAsia X,Airbus A330-300,Business,Economy Class,,00:00
+21-09-2023,Bangkok,Hanoi (Soc Son),Vietjet Air,Airbus A321,Leisure,Economy Class,,00:00
+10-10-2023,Hanoi (Soc Son),Da Nang,Vietnam Airlines,Airbus A321,Leisure,Economy Class,,00:00
+15-10-2023,Da Nang,Ho Chi Minh City,Vietnam Airlines,Airbus A320-200,Leisure,Economy Class,,00:00
+18-10-2023,Ho Chi Minh City,Bangkok,Jatayu Airlines,Airbus A321,Leisure,Economy Class,,00:00
+31-10-2023,Taoyuan (Dayuan),Amsterdam,China Airlines,Airbus A350-900,Business,Economy Class,,00:00
+30-12-2023,Bangkok,Taoyuan (Dayuan),China Airlines,Airbus A330-300,Business,Economy Class,,00:00
+30-12-2023,Taoyuan (Dayuan),Amsterdam,China Airlines,Airbus A350-900,Business,Economy Class,,00:00
+08-01-2024,Amsterdam,Taoyuan (Dayuan),China Airlines,Airbus A350-900,Business,Economy Class,,00:00
+09-01-2024,Taoyuan (Dayuan),Bangkok,China Airlines,Airbus A350-900,Business,Economy Class,,00:00
+30-03-2024,Bangkok,New Delhi,Thai Airways International,Boeing 787-8,Leisure,Economy Class,,00:00
+07-04-2024,New Delhi,Bangkok,Thai Airways International,Boeing 777-200,Leisure,Economy Class,,00:00
+18-04-2024,Bangkok,Muscat,Oman Air,Boeing 787-9,Leisure,Economy Class,,00:00
+19-04-2024,Muscat,Manama,Oman Air,Boeing 737 MAX 8,Leisure,Economy Class,,00:00
+21-04-2024,Manama,Doha,Qatar Airways,Boeing 737 MAX 8,Leisure,Economy Class,,00:00
+22-04-2024,Doha,Amman,Qatar Airways,Boeing 777-300ER,Leisure,Economy Class,,00:00
+24-04-2024,Amman,Düsseldorf,Royal Jordanian,Airbus A320,Business,Economy Class,,00:00
+07-05-2024,Amsterdam,"Pendik, Istanbul",Pegasus Airlines,Airbus A321,Leisure,Economy Class,,00:00
+09-05-2024,"Pendik, Istanbul",Riyadh,Pegasus Airlines,Airbus A321,Leisure,Economy Class,,03:04
+11-05-2024,Riyadh,Muscat,Oman Air,Boeing 737 MAX 8,Leisure,Economy Class,,01:40
+11-05-2024,Muscat,Bangkok,Oman Air,Boeing 787-9,Leisure,Economy Class,,05:44
+27-08-2024,Bangkok,Shanghai (Pudong),China Eastern Airlines,Airbus A330-200,Leisure,Economy Class,,03:40
+27-08-2024,Shanghai (Pudong),Amsterdam,China Eastern Airlines,Boeing 777-300,Leisure,Economy Class,,12:10
+23-09-2024,Amsterdam,Shanghai (Pudong),China Eastern Airlines,Boeing 777-300,Leisure,Economy Class,,11:08
+24-09-2024,Shanghai (Pudong),Bangkok,Shanghai Airlines,Boeing 737 MAX 8,Leisure,Economy Class,,03:40
+19-10-2024,Bangkok,Guangzhou (Huadu),China Southern Airlines,Boeing 737-800,Business,Economy Class,,02:16
+19-10-2024,Guangzhou (Huadu),Amsterdam,China Southern Airlines,Airbus A350-900,Business,Economy Class,,12:15
+23-10-2024,Paris,Madrid,Air France,Airbus A321,Business,Economy Class,,01:32
+25-10-2024,Madrid,Porto,Air Europa,Boeing 737-800,Leisure,Economy Class,21A,00:48
+29-10-2024,Porto,Eindhoven,Ryanair,Boeing 737 MAX 8,Business,Economy Class,,02:06
+04-11-2024,Amsterdam,Guangzhou (Huadu),China Southern Airlines,Airbus A350-1000,Business,Economy Class,64E,11:25
+05-11-2024,Guangzhou (Huadu),Bangkok,China Southern Airlines,Airbus A320,Business,Economy Class,46H,03:00
+26-01-2025,Bangkok,Seoul,Korean Air,Boeing 787-10,Business,Economy Class,31A,04:36
+26-01-2025,Seattle,Denver,Delta Air Lines,Embraer 175 short wing,Business,Economy Class,19D,02:12
+26-01-2025,Seoul,Seattle,Korean Air,Boeing 787-9,Business,Economy Class,31A,10:27
+03-02-2025,Denver,Seattle,Delta Air Lines,Airbus A220-300,Business,Economy Class,31A,02:12
+03-02-2025,Seattle,Seoul,Delta Air Lines,Airbus A330-900,Business,Economy Class,56H,10:27
+04-02-2025,Seoul,Bangkok,Korean Air,Boeing 777-300,Business,Economy Class,40C,04:36
+06-02-2025,Bangkok,Manila,Cebu Pacific,Airbus A320neo,Leisure,Economy Class,14E,02:49
+10-02-2025,Manila,Bangkok,Cebu Pacific,Airbus A321neo,Leisure,Economy Class,41C,03:40
+21-04-2025,Bangkok,Tokyo,Japan Airlines,Boeing 787-9,Business,Economy Class,53G,05:44
+22-04-2025,Los Angeles,Raleigh/Durham,American Airlines,Boeing 737-800,Business,Economy Class,29C,04:55
+22-04-2025,Tokyo,Los Angeles,American Airlines,Boeing 787-8,Business,Economy Class,14C,11:00
+25-04-2025,Raleigh/Durham,Dallas,Southwest Airlines,Boeing 737 MAX 8,Business,Economy Class,,02:15
+25-04-2025,Dallas,Las Vegas,Southwest Airlines,Boeing 737 MAX 8,Business,Economy Class,,02:16
+30-04-2025,Las Vegas,Denver,Southwest Airlines,Boeing 737-700 / Boeing 737-700ER,Business,Economy Class,17B,02:00
+15-05-2025,Denver,New York,Delta Air Lines,Airbus A321neo,Business,Economy Class,23D,03:40
+17-05-2025,New York,Amsterdam,KLM,Airbus A330-200,Business,Economy Class,20E,07:25
+24-05-2025,Amsterdam,Singapore,Singapore Airlines,Airbus A350-900,Business,Economy Class,58K,12:45
+25-05-2025,Singapore,Bangkok,Singapore Airlines,Boeing 787,Business,Economy Class,72K,02:30
+23-06-2025,Bangkok,Singapore,Jetstar Asia Airways,Airbus A320,Leisure,Economy Class,13A,01:56
+27-06-2025,Singapore,Bangkok,Scoot,Boeing 787-8,Leisure,Economy Class,8D,01:56
+12-08-2025,Bangkok,Taoyuan (Dayuan),Starlux Airlines,Airbus A350-900,Business,Premium Economy,22G,03:10
+13-08-2025,Taoyuan (Dayuan),Seattle,Starlux Airlines,Boeing 737-900 / Boeing 737-900ER,Business,Economy Class,67J,12:11
+13-08-2025,Seattle,Denver,"Alaska Airlines, Inc.",Boeing 737-900 / Boeing 737-900ER,Business,Premium Economy,6C,02:12
+21-08-2025,Denver,New York,Delta Air Lines,Boeing 737-800,Business,Economy Class,22F,04:01
+21-08-2025,New York,Mumbai,Air India Limited,Boeing 777-300ER,Business,First Class,1G,15:10
+27-08-2025,Mumbai,Kathmandu,IndiGo,Airbus A320-200,Leisure,Economy Class,25F,02:45
+30-08-2025,Kathmandu,Dhaka,Biman Bangladesh Airlines,Boeing 737-800,Leisure,Economy Class,16A,01:25
+01-09-2025,Dhaka,Singapore,US-Bangla Airlines,Boeing 737-800,Leisure,Economy Class,29E,04:10
+04-09-2025,Singapore,Bangkok,Scoot,Airbus A320,Leisure,Economy Class,14D,02:30
+02-10-2025,Bangkok,Singapore,Thai  AirAsia,Airbus A321neo,Leisure,Economy Class,10D,02:25
+07-10-2025,Singapore,Bangkok,Thai  AirAsia,Airbus A320,Leisure,Economy Class,2D,02:40
+23-10-2025,Bangkok,Beijing,Hainan Airlines,Boeing 737-800,Leisure,Economy Class,42J,05:05
+24-10-2025,Beijing,Prague,Hainan Airlines,Airbus A330-300,Leisure,Economy Class,39A,09:55
+04-11-2025,Prague,Amsterdam,KLM,Boeing 737-800,Leisure,Economy Class,14B,01:08
+12-11-2025,Amsterdam,Mumbai,IndiGo,Boeing 787-9,Business,Economy Class,16A,08:34
+13-11-2025,Mumbai,Bangkok,IndiGo,Airbus A321neo,Business,Economy Class,37F,03:49
+03-12-2025,Bangkok,Frankfurt am Main,Condor Flugdienst,Airbus A330-900,Leisure,Economy Class,33K,11:15
+04-12-2025,Frankfurt am Main,Prague,Condor Flugdienst,Airbus A320,Leisure,Economy Class,10A,00:45
+08-12-2025,Prague,Frankfurt am Main,Condor Flugdienst,Airbus A320,Leisure,Economy Class,32F,00:45
+09-12-2025,Frankfurt am Main,Bangkok,Condor Flugdienst,Airbus A320neo,Leisure,Premium Economy,16H,11:15
+18-12-2025,Bangkok,Taoyuan (Dayuan),EVA Air,Boeing 777-300,Business,Economy Class,71K,03:10
+18-12-2025,Seattle,Kalispell,"Alaska Airlines, Inc.",Embraer 175 long wing,Business,Premium Economy,8A,01:01
+18-12-2025,Taoyuan (Dayuan),Seattle,EVA Air,Boeing 787-10,Business,Economy Class,29A,12:11
+14-01-2026,Kalispell,Seattle,"Alaska Airlines, Inc.",Embraer 175 short wing,Business,Economy Class,13C,01:01
+14-01-2026,Seattle,Taoyuan (Dayuan),EVA Air,Boeing 787-10,Business,Economy Class,53A,12:11
+15-01-2026,Taoyuan (Dayuan),Bangkok,EVA Air,Boeing 777-300ER,Business,Premium Economy,26D,03:10

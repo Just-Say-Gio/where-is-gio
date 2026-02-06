@@ -16,6 +16,12 @@ interface CacheStatus {
   segmentCount: number;
 }
 
+interface FlightsCacheStatus {
+  hasData: boolean;
+  lastParsed: number | null;
+  recordCount: number;
+}
+
 function timeAgo(ts: number): string {
   const diff = Math.floor((Date.now() - ts) / 1000);
   if (diff < 60) return `${diff}s ago`;
@@ -26,32 +32,36 @@ function timeAgo(ts: number): string {
 
 export default function AdminPage() {
   const [syncing, setSyncing] = useState(false);
+  const [parsingFlights, setParsingFlights] = useState(false);
   const [logs, setLogs] = useState<{ time: string; msg: string; type: "info" | "ok" | "error" | "warn" }[]>([]);
   const [cacheStatus, setCacheStatus] = useState<CacheStatus | null>(null);
+  const [flightsStatus, setFlightsStatus] = useState<FlightsCacheStatus | null>(null);
 
   const addLog = (msg: string, type: "info" | "ok" | "error" | "warn" = "info") => {
     const time = new Date().toLocaleTimeString();
     setLogs((prev) => [...prev, { time, msg, type }]);
   };
 
-  // Fetch cache status on load
+  // Fetch both cache statuses on load
   useEffect(() => {
     fetch("/api/sync/status")
       .then((r) => r.json())
       .then((data: CacheStatus) => setCacheStatus(data))
       .catch(() => {});
+    fetch("/api/flights")
+      .then((r) => r.json())
+      .then((data: FlightsCacheStatus) => setFlightsStatus(data))
+      .catch(() => {});
   }, []);
 
   const handleSync = async () => {
     setSyncing(true);
-    addLog("Starting sync...", "info");
-    addLog("Fetching from Notion API...", "info");
+    addLog("Starting Notion sync...", "info");
 
     try {
       const res = await fetch("/api/sync");
       const data = await res.json();
 
-      // Log each step
       if (data.steps) {
         (data.steps as SyncStep[]).forEach((s) => {
           const timing = s.ms ? ` (${s.ms}ms)` : "";
@@ -72,7 +82,6 @@ export default function AdminPage() {
         addLog("Sync failed.", "error");
       }
 
-      // Update cache status
       setCacheStatus({
         hasData: data.hasData,
         lastSynced: data.lastSynced,
@@ -82,6 +91,46 @@ export default function AdminPage() {
       addLog(err instanceof Error ? err.message : "Network error", "error");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleFlightRefresh = async () => {
+    setParsingFlights(true);
+    addLog("Parsing flights CSV...", "info");
+
+    try {
+      const res = await fetch("/api/flights", { method: "POST" });
+      const data = await res.json();
+
+      if (data.steps) {
+        (data.steps as SyncStep[]).forEach((s) => {
+          const timing = s.ms ? ` (${s.ms}ms)` : "";
+          const detail = s.detail ? ` — ${s.detail}` : "";
+          if (s.status === "ok") {
+            addLog(`[Flights] ${s.step}${detail}${timing}`, "ok");
+          } else if (s.status === "skipped") {
+            addLog(`[Flights] ${s.step}${detail} [skipped]`, "warn");
+          } else {
+            addLog(`[Flights] ${s.step} failed${detail}`, "error");
+          }
+        });
+      }
+
+      if (data.success) {
+        addLog(data.cached ? "Flights — CSV unchanged, cache reused." : "Flight analytics updated!", "ok");
+      } else {
+        addLog("Flight parsing failed.", "error");
+      }
+
+      setFlightsStatus({
+        hasData: data.hasData,
+        lastParsed: data.lastParsed,
+        recordCount: data.recordCount,
+      });
+    } catch (err) {
+      addLog(err instanceof Error ? err.message : "Network error", "error");
+    } finally {
+      setParsingFlights(false);
     }
   };
 
@@ -107,14 +156,14 @@ export default function AdminPage() {
           <p className="text-3xl">⚙️</p>
           <h1 className="text-2xl font-bold">Where Is Gio — Admin</h1>
           <p className="text-sm text-muted-foreground">
-            Manually sync travel data from Notion + Groq AI
+            Manage travel data, flight analytics & hosting
           </p>
         </div>
 
         {/* Cache Status */}
         <div className="p-4 rounded-xl bg-muted/50 border space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Cache status</span>
+            <span className="text-muted-foreground">Notion cache</span>
             <span className="font-medium">
               {cacheStatus === null
                 ? "Loading..."
@@ -139,15 +188,53 @@ export default function AdminPage() {
               </div>
             </>
           )}
+
+          <div className="border-t pt-2 mt-2" />
+
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Flight analytics</span>
+            <span className="font-medium">
+              {flightsStatus === null
+                ? "Loading..."
+                : flightsStatus.hasData
+                  ? "✓ Active"
+                  : "✗ Empty"}
+            </span>
+          </div>
+          {flightsStatus?.hasData && (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Last parsed</span>
+                <span className="font-medium">
+                  {flightsStatus.lastParsed
+                    ? `${timeAgo(flightsStatus.lastParsed)} (${new Date(flightsStatus.lastParsed).toLocaleTimeString()})`
+                    : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Flights</span>
+                <span className="font-medium">{flightsStatus.recordCount} records</span>
+              </div>
+            </>
+          )}
         </div>
 
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          {syncing ? "Syncing..." : "Sync from Notion"}
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleSync}
+            disabled={syncing || parsingFlights}
+            className="py-3 px-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
+          >
+            {syncing ? "Syncing..." : "Sync from Notion"}
+          </button>
+          <button
+            onClick={handleFlightRefresh}
+            disabled={syncing || parsingFlights}
+            className="py-3 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
+          >
+            {parsingFlights ? "Parsing..." : "Refresh Flights"}
+          </button>
+        </div>
 
         {/* Log */}
         {logs.length > 0 && (
@@ -159,7 +246,7 @@ export default function AdminPage() {
                 <span>{log.msg}</span>
               </div>
             ))}
-            {syncing && (
+            {(syncing || parsingFlights) && (
               <div className="flex gap-2 text-muted-foreground animate-pulse">
                 <span>{new Date().toLocaleTimeString()}</span>
                 <span>○</span>

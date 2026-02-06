@@ -1,0 +1,115 @@
+{
+  "lastUpdated": "2026-02-06",
+  "totalVisited": 53,
+  "regions": {
+    "Africa": {
+      "visited": 2,
+      "total": 54,
+      "countries": [
+        { "code": "EG", "name": "Egypt", "regions": 1 },
+        { "code": "TZ", "name": "Tanzania", "regions": 1 }
+      ]
+    },
+    "Central America & Caribbean": {
+      "visited": 3,
+      "total": 20,
+      "countries": [
+        { "code": "CR", "name": "Costa Rica", "regions": 1 },
+        { "code": "DO", "name": "Dominican Republic", "regions": 1 },
+        { "code": "CW", "name": "Curacao", "regions": 1 }
+      ]
+    },
+    "East & Southeast Asia": {
+      "visited": 12,
+      "total": 16,
+      "countries": [
+        { "code": "KH", "name": "Cambodia", "regions": 1 },
+        { "code": "CN", "name": "China", "regions": 3 },
+        { "code": "HK", "name": "Hong Kong", "regions": 1 },
+        { "code": "ID", "name": "Indonesia", "regions": 1 },
+        { "code": "JP", "name": "Japan", "regions": 3 },
+        { "code": "MO", "name": "Macau", "regions": 1 },
+        { "code": "MY", "name": "Malaysia" },
+        { "code": "PH", "name": "Philippines", "regions": 1 },
+        { "code": "SG", "name": "Singapore" },
+        { "code": "KR", "name": "South Korea", "regions": 2 },
+        { "code": "TH", "name": "Thailand", "regions": 12 },
+        { "code": "VN", "name": "Vietnam", "regions": 5 }
+      ]
+    },
+    "Europe": {
+      "visited": 23,
+      "total": 45,
+      "countries": [
+        { "code": "AT", "name": "Austria", "regions": 1 },
+        { "code": "BE", "name": "Belgium", "regions": 1 },
+        { "code": "BA", "name": "Bosnia and Herzegovina" },
+        { "code": "HR", "name": "Croatia", "regions": 5 },
+        { "code": "CZ", "name": "Czech Republic", "regions": 1 },
+        { "code": "DK", "name": "Denmark", "regions": 1 },
+        { "code": "FR", "name": "France", "regions": 4 },
+        { "code": "DE", "name": "Germany", "regions": 4 },
+        { "code": "HU", "name": "Hungary", "regions": 1 },
+        { "code": "IT", "name": "Italy", "regions": 4 },
+        { "code": "LU", "name": "Luxembourg" },
+        { "code": "MC", "name": "Monaco" },
+        { "code": "ME", "name": "Montenegro" },
+        { "code": "NL", "name": "Netherlands", "regions": 7 },
+        { "code": "NO", "name": "Norway", "regions": 1 },
+        { "code": "PL", "name": "Poland", "regions": 1 },
+        { "code": "PT", "name": "Portugal", "regions": 1 },
+        { "code": "SK", "name": "Slovakia", "regions": 1 },
+        { "code": "SI", "name": "Slovenia" },
+        { "code": "ES", "name": "Spain", "regions": 2 },
+        { "code": "SE", "name": "Sweden" },
+        { "code": "CH", "name": "Switzerland" },
+        { "code": "GB", "name": "United Kingdom", "regions": 1 }
+      ]
+    },
+    "Middle East": {
+      "visited": 7,
+      "total": 18,
+      "countries": [
+        { "code": "BH", "name": "Bahrain", "regions": 3 },
+        { "code": "JO", "name": "Jordan", "regions": 2 },
+        { "code": "OM", "name": "Oman", "regions": 1 },
+        { "code": "QA", "name": "Qatar", "regions": 1 },
+        { "code": "SA", "name": "Saudi Arabia", "regions": 1 },
+        { "code": "TR", "name": "Turkey", "regions": 2 },
+        { "code": "AE", "name": "UAE", "regions": 2 }
+      ]
+    },
+    "North America": {
+      "visited": 2,
+      "total": 3,
+      "countries": [
+        { "code": "CA", "name": "Canada" },
+        { "code": "US", "name": "United States", "regions": 6 }
+      ]
+    },
+    "South America": {
+      "visited": 0,
+      "total": 12,
+      "countries": []
+    },
+    "South Asia": {
+      "visited": 3,
+      "total": 8,
+      "countries": [
+        { "code": "BD", "name": "Bangladesh", "regions": 1 },
+        { "code": "IN", "name": "India", "regions": 3 },
+        { "code": "NP", "name": "Nepal", "regions": 1 }
+      ]
+    },
+    "Central Asia": {
+      "visited": 0,
+      "total": 5,
+      "countries": []
+    },
+    "Oceania": {
+      "visited": 0,
+      "total": 14,
+      "countries": []
+    }
+  }
+}

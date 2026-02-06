@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDay, TravelSegment } from "@/lib/types";
+import { CalendarDay, TravelSegment, FlightAnalytics } from "@/lib/types";
 import { getCurrentSegment, getNextSegment } from "@/lib/calendar-utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "./header";
 import { YearCalendar } from "./year-calendar";
 import { Legend } from "./legend";
 import { CountryStats } from "./country-stats";
+import { FlightStats } from "./flight-stats";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthGate } from "./auth-gate";
 
@@ -15,12 +16,14 @@ interface CalendarWrapperProps {
   segments: TravelSegment[];
   months: CalendarDay[][];
   year: number;
+  flightAnalytics: FlightAnalytics | null;
 }
 
 export function CalendarWrapper({
   segments,
   months,
   year,
+  flightAnalytics,
 }: CalendarWrapperProps) {
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [today, setToday] = useState<string>("");
@@ -73,10 +76,23 @@ export function CalendarWrapper({
 
         <div className="mt-10 pt-6 border-t">
           <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
-            Travel Stats
+            {year} Travel Plans
           </h2>
           <CountryStats segments={segments} />
         </div>
+
+        {/* All-Time Travel Analytics */}
+        {flightAnalytics && (
+          <div className="mt-10 pt-6 border-t">
+            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">
+              All-Time Travel
+            </h2>
+            <p className="text-center text-xs text-muted-foreground mb-5">
+              {flightAnalytics.totalFlights} flights tracked since 2022
+            </p>
+            <FlightStats analytics={flightAnalytics} />
+          </div>
+        )}
 
         {/* Scratch Map */}
         <div className="mt-10 pt-6 border-t">
