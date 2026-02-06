@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { TravelSegment } from "@/lib/types";
 import { getCountryInfo } from "@/lib/countries";
 import { getCityCoords } from "@/lib/city-coords";
@@ -58,6 +58,23 @@ async function fetchVisitorLocation(): Promise<VisitorGeo | null> {
   }
 }
 
+/* ---- Sweep helpers ---- */
+
+const SWEEP_DURATION = 5000; // ms per full rotation
+const SWEEP_SPEED = 360 / SWEEP_DURATION; // deg per ms
+
+/** Angular difference in the sweep's "just passed" direction (0–360) */
+function sweepDelta(sweepAngle: number, targetBearing: number): number {
+  return ((sweepAngle - targetBearing) % 360 + 360) % 360;
+}
+
+/** Map sweep delta to blip intensity: 1 at 0°, fading to 0 at ~150° */
+function blipIntensity(delta: number): number {
+  if (delta < 20) return 1;
+  if (delta < 150) return 1 - (delta - 20) / 130;
+  return 0;
+}
+
 /* ---- Constants ---- */
 
 const RINGS = [0.2, 0.4, 0.6, 0.8, 1];
@@ -67,7 +84,7 @@ const COMPASS = [
   { label: "S", angle: 180 },
   { label: "W", angle: 270 },
 ];
-const TICK_COUNT = 72; // small tick marks every 5 degrees
+const TICK_COUNT = 72;
 
 /* ---- Component ---- */
 
@@ -78,6 +95,23 @@ interface GioLocatorProps {
 export function GioLocator({ currentSegment }: GioLocatorProps) {
   const [visitor, setVisitor] = useState<VisitorGeo | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
+
+  // rAF-driven sweep angle
+  const [sweepAngle, setSweepAngle] = useState(0);
+  const rafRef = useRef<number>(0);
+  const startTimeRef = useRef<number | null>(null);
+
+  const animateSweep = useCallback((timestamp: number) => {
+    if (startTimeRef.current === null) startTimeRef.current = timestamp;
+    const elapsed = timestamp - startTimeRef.current;
+    setSweepAngle((elapsed * SWEEP_SPEED) % 360);
+    rafRef.current = requestAnimationFrame(animateSweep);
+  }, []);
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(animateSweep);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [animateSweep]);
 
   // Gio's data
   const gioCoords = useMemo(() => {
@@ -98,11 +132,16 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
     });
   }, []);
 
-  // Distance
+  // Distance + bearing
   const distance = useMemo(() => {
     if (!visitor || !gioCoords) return null;
     return haversineKm(visitor.lat, visitor.lng, gioCoords[0], gioCoords[1]);
   }, [gioCoords, visitor]);
+
+  const gioBearing = useMemo(() => {
+    if (!visitor || !gioCoords) return 0;
+    return bearingDeg(visitor.lat, visitor.lng, gioCoords[0], gioCoords[1]);
+  }, [visitor, gioCoords]);
 
   // Max range for radar
   const maxRange = useMemo(() => {
@@ -113,14 +152,21 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
   // Gio's blip position (relative to visitor at center)
   const gioBlipStyle = useMemo(() => {
     if (!visitor || !distance) return null;
-    const angle = bearingDeg(visitor.lat, visitor.lng, gioCoords[0], gioCoords[1]);
     const normalizedDist = Math.min(distance / maxRange, 0.88);
     const rPct = normalizedDist * 50;
-    const rad = ((angle - 90) * Math.PI) / 180;
+    const rad = ((gioBearing - 90) * Math.PI) / 180;
     const xPct = Math.cos(rad) * rPct;
     const yPct = Math.sin(rad) * rPct;
     return { left: `calc(50% + ${xPct}%)`, top: `calc(50% + ${yPct}%)` };
-  }, [visitor, gioCoords, distance, maxRange]);
+  }, [visitor, distance, maxRange, gioBearing]);
+
+  // Sweep-reactive intensity for Gio blip
+  const delta = sweepDelta(sweepAngle, gioBearing);
+  const intensity = gioBlipStyle ? blipIntensity(delta) : 0;
+  const blipOpacity = 0.25 + intensity * 0.75; // 0.25 baseline, 1.0 when just swept
+  const glowSize = intensity * 20; // 0–20px
+  const glowOpacity = intensity * 0.6; // 0–0.6
+  const lineOpacity = 0.08 + intensity * 0.25; // 0.08 baseline, 0.33 peak
 
   const accentColor = gioCountryInfo.color;
 
@@ -197,7 +243,7 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
               const angle = (i * 360) / TICK_COUNT;
               const isMajor = angle % 90 === 0;
               const isMinor = angle % 30 === 0;
-              if (isMajor) return null; // compass labels handle these
+              if (isMajor) return null;
               return (
                 <div
                   key={`tick-${i}`}
@@ -224,18 +270,28 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
               );
             })}
 
-            {/* Sweep — uses country accent color */}
+            {/* Phosphor afterglow trail — wider, dimmer wedge behind sweep */}
             <div
-              className="absolute inset-0 rounded-full radar-sweep"
+              className="absolute inset-0 rounded-full pointer-events-none"
               style={{
-                background: `conic-gradient(from 0deg, transparent 0deg, transparent 340deg, ${accentColor}08 350deg, ${accentColor}30 358deg, ${accentColor}60 360deg)`,
+                transform: `rotate(${sweepAngle}deg)`,
+                background: `conic-gradient(from 0deg, transparent 0deg, transparent 270deg, ${accentColor}04 310deg, ${accentColor}10 345deg, ${accentColor}18 355deg, transparent 360deg)`,
+              }}
+            />
+
+            {/* Sweep line — sharp leading edge */}
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                transform: `rotate(${sweepAngle}deg)`,
+                background: `conic-gradient(from 0deg, transparent 0deg, transparent 350deg, ${accentColor}10 355deg, ${accentColor}40 358deg, ${accentColor}80 360deg)`,
               }}
             />
 
             {/* Compass labels */}
             {COMPASS.map(({ label, angle }) => {
               const rad = ((angle - 90) * Math.PI) / 180;
-              const r = 46; // percent from center
+              const r = 46;
               const x = Math.cos(rad) * r;
               const y = Math.sin(rad) * r;
               return (
@@ -267,14 +323,6 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
             {/* Center — You (visitor) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center">
               <div className="relative">
-                <span
-                  className="absolute -inset-2 animate-ping rounded-full opacity-20"
-                  style={{ background: accentColor }}
-                />
-                <span
-                  className="absolute -inset-1 rounded-full opacity-10 animate-pulse"
-                  style={{ background: accentColor }}
-                />
                 <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-foreground mx-auto shadow-sm ring-2 ring-background" />
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-foreground mt-2 tracking-widest uppercase">
@@ -287,33 +335,59 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
               )}
             </div>
 
-            {/* Gio blip */}
+            {/* Connection line between visitor and Gio — sweep-reactive */}
+            {gioBlipStyle && visitor && (
+              <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none">
+                <line
+                  x1="50%"
+                  y1="50%"
+                  x2={gioBlipStyle.left}
+                  y2={gioBlipStyle.top}
+                  stroke={accentColor}
+                  strokeOpacity={lineOpacity}
+                  strokeWidth={1}
+                  strokeDasharray="4 4"
+                  style={{ transition: "stroke-opacity 0.3s ease" }}
+                />
+              </svg>
+            )}
+
+            {/* Gio blip — sweep-reactive */}
             {gioBlipStyle && (
               <div
                 className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
                 style={gioBlipStyle}
               >
                 <div className="flex flex-col items-center">
-                  {/* Outer pulse ring */}
+                  {/* Sweep-reactive glow ring */}
                   <div
-                    className="absolute -inset-3 rounded-full animate-ping opacity-15"
-                    style={{ background: accentColor }}
-                  />
-                  {/* Mid glow */}
-                  <div
-                    className="absolute -inset-2 rounded-full animate-pulse opacity-20"
-                    style={{ background: accentColor }}
+                    className="absolute rounded-full"
+                    style={{
+                      inset: `-${6 + glowSize * 0.5}px`,
+                      background: accentColor,
+                      opacity: glowOpacity * 0.3,
+                      filter: `blur(${4 + glowSize * 0.4}px)`,
+                      transition: "opacity 0.3s ease, inset 0.3s ease, filter 0.3s ease",
+                    }}
                   />
                   {/* Blip dot */}
                   <div
-                    className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full radar-blip ring-2 ring-background"
+                    className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ring-2 ring-background"
                     style={{
                       background: accentColor,
-                      boxShadow: `0 0 12px 4px ${accentColor}50, 0 0 24px 8px ${accentColor}20`,
+                      opacity: blipOpacity,
+                      boxShadow: `0 0 ${4 + glowSize}px ${2 + glowSize * 0.3}px ${accentColor}${Math.round(glowOpacity * 255).toString(16).padStart(2, "0")}`,
+                      transition: "opacity 0.3s ease, box-shadow 0.3s ease",
                     }}
                   />
                   {/* Label */}
-                  <div className="absolute top-5 sm:top-6 text-center whitespace-nowrap">
+                  <div
+                    className="absolute top-5 sm:top-6 text-center whitespace-nowrap"
+                    style={{
+                      opacity: 0.5 + intensity * 0.5,
+                      transition: "opacity 0.3s ease",
+                    }}
+                  >
                     <div
                       className="text-[9px] sm:text-[11px] font-bold tracking-wide"
                       style={{ color: accentColor }}
@@ -326,22 +400,6 @@ export function GioLocator({ currentSegment }: GioLocatorProps) {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Connection line between visitor and Gio */}
-            {gioBlipStyle && visitor && (
-              <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none">
-                <line
-                  x1="50%"
-                  y1="50%"
-                  x2={gioBlipStyle.left}
-                  y2={gioBlipStyle.top}
-                  stroke={accentColor}
-                  strokeOpacity={0.15}
-                  strokeWidth={1}
-                  strokeDasharray="4 4"
-                />
-              </svg>
             )}
 
             {/* Loading state */}
