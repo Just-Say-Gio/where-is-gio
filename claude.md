@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Where Is Gio** is a polished travel calendar website showing where Gio is (or will be) throughout 2026. It syncs with a Notion travel outline, uses Groq AI to parse unstructured notes into structured data AND generate monthly taglines, and displays a color-coded year calendar with rich tooltips, mobile drawers, travel stats, flight analytics, a 3D globe, and a country tracker.
+**Where Is Gio** is a polished travel calendar website showing where Gio is (or will be) throughout 2026. It syncs with a Notion travel outline, uses Groq AI to parse unstructured notes into structured data AND generate monthly taglines, and displays a color-coded year calendar with rich tooltips, mobile drawers, travel stats, flight analytics, a 3D globe, a country tracker, and a full Google Maps movement history dashboard with photo heatmap.
 
 **Live at:** `whereisgio.com`
 **Repo:** `github.com/Just-Say-Gio/where-is-gio`
@@ -20,13 +20,18 @@
 | MagicUI | Latest | Animations (blur-fade, number-ticker, magic-card, border-beam, animated-gradient-text, animated-shiny-text, marquee, text-reveal, animated-circular-progress-bar) |
 | motion/react | Latest | Animation library (framer-motion successor) |
 | three-globe + react-three-fiber | Latest | 3D flight globe visualization |
+| Leaflet + react-leaflet | Latest | 2D interactive heatmap with photo/review markers |
+| leaflet.heat | 0.2.x | Heat layer plugin for Leaflet |
 | Notion API | @notionhq/client 5.x | Data source — fetches travel schedule blocks |
-| Groq SDK | 0.37.x | AI parsing + monthly insights (llama-3.3-70b-versatile, JSON mode) |
+| Groq SDK | 0.37.x | AI parsing + monthly insights + maps analytics (llama-3.3-70b-versatile, JSON mode) |
+| sharp | 0.34.x | Image resizing (CLI script, devDependency) |
 | Railway | -- | Hosting (Nixpacks, Node 20+) |
 
 ---
 
 ## Architecture
+
+### Calendar Data Flow (Notion → Calendar)
 
 ```
 Notion Travel Page
@@ -50,13 +55,42 @@ Notion Travel Page
 
 **Key design decision:** The main page never calls Groq directly. All AI calls happen during `/api/sync` (triggered from `/admin`). This prevents 429 rate limit errors from crashing the site. Monthly insights are backfilled on sync if missing from cache.
 
+### Google Maps Data Flow (Takeout → Maps Dashboard)
+
+```
+Google Maps Takeout (raw, gitignored)
+  ├── Timeline (2).json          (233MB, 58,892 segments)
+  ├── Takeout/Maps/Reviews.json  (638 reviews)
+  └── Takeout/Maps/Photos and videos/*.json  (2,986 photos)
+        |
+        v
+  CLI: npx tsx scripts/process-maps-data.ts [--insights] [--heatmap]
+        |
+        ├── processTimeline()     → visits, activities, distance by 13 modes, records
+        ├── processReviews()      → ratings, countries, distribution
+        ├── processPhotos()       → geotagged count, date ranges, by-year
+        ├── coordToCountry()      → ISO-2 country codes per visit (bbox lookup)
+        ├── generateInsights()    → Groq AI: 10 categorized travel insights
+        └── extractHeatmapData()  → grid cells, top photos, review coordinates
+        |
+        v
+  data/maps-stats.json           (aggregated stats, committed)
+  data/maps-heatmap.json          (heat cells + photo/review coords, committed)
+  public/photos/heatmap/*.jpg     (488 resized thumbnails, committed)
+        |
+        v
+  Server reads JSON → CalendarWrapper → MapsStats + PhotoHeatmap components
+```
+
+**Privacy:** Raw GPS coordinates and placeIds are only used during aggregation and never stored. Visit coordinates are rounded to 1 decimal (~11km grid) for heatmap. HOME/WORK semantic visits are excluded entirely.
+
 ---
 
 ## Pages & Routes
 
 | Route | Type | Description |
 |-------|------|-------------|
-| `/` | Dynamic (SSR) | Main calendar with 4 sections: calendar, stats, flights, countries |
+| `/` | Dynamic (SSR) | Main page: calendar, stats, flights, countries, maps dashboard, heatmap |
 | `/when-can-I-stay` | Dynamic (SSR) | Public page showing Thailand availability for hosting |
 | `/admin` | Static | Sync button, cache status, sync logs with step timing |
 | `/admin/hosting` | Static | Interactive calendar to mark Thailand dates as unavailable |
@@ -65,13 +99,15 @@ Notion Travel Page
 | `/api/segments` | API | Cached travel segments as JSON |
 | `/api/flights` | API | Flight analytics from CSV |
 | `/api/hosting` | API | GET/POST/DELETE for hosting availability overrides |
+| `/api/maps-stats` | API | Returns `data/maps-stats.json` |
+| `/api/maps-stats/insights` | API (POST) | Generates AI insights via Groq, writes to maps-stats.json |
 
 ---
 
 ## Component Architecture
 
 ```
-page.tsx (Server) — reads cache, passes data down
+page.tsx (Server) — reads cache + JSON files, passes data down
   |
   CalendarWrapper (Client boundary)
   |-- Header — current location + next trip countdown + timezone display (MagicCard, AnimatedGradientText)
@@ -88,6 +124,18 @@ page.tsx (Server) — reads cache, passes data down
   |-- FlightStats — all-time flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
   |-- FlightMap — 3D globe with chronological flight arcs + camera tracking (frosted overlays)
   |-- CountryTracker — all-time visited countries (CircularProgressBar hero, MagicCard regions, flag marquee)
+  |-- MapsStats — Google Maps movement history dashboard (13 years, 758k km)
+  |   |-- Hero metrics — total km, unique places, visits, years (NumberTicker)
+  |   |-- Air vs Ground — AnimatedCircularProgressBar
+  |   |-- Distance by mode — top 6 transport modes with icons
+  |   |-- Record cards — busiest year, longest flight, most active day
+  |   |-- Year-by-year grid — MagicCard per year with flags, 70/30 transport bar, 6-stat grid
+  |   |-- Reviews — total, avg rating, distribution by country + rating stars
+  |   |-- Photos summary — geotagged count, date range
+  |   |-- AI Deep Analysis — 10 insights in 5 categories (personality/evolution/patterns/scale/deep cuts)
+  |   |-- Monthly marquee — top 20 months by km
+  |-- PhotoHeatmap — Leaflet world map with heat layer + photo/review markers
+  |   |-- HeatmapMap (dynamic import, SSR: false) — Leaflet + leaflet.heat
   |-- Scratch Map — embedded Skratch.world iframe
 ```
 
@@ -121,6 +169,24 @@ page.tsx (Server) — reads cache, passes data down
 - **3D globe** — Aceternity globe with chronological flight arcs + auto-tracking camera, frosted glass year legend pills and stats overlay
 - **Country tracker** — AnimatedCircularProgressBar hero (27% world) in MagicCard, regional breakdown in MagicCard with gradient bars, country flag marquee, AnimatedShinyText "best explored region" badge
 
+### Google Maps Movement History
+- **MapsStats dashboard** — comprehensive analytics from 13 years (2014-2026) of Google Maps Timeline data
+  - **Hero metrics**: 758,189 km total, 5,190 unique places, 18,851 visits, 13 years
+  - **Air vs Ground**: AnimatedCircularProgressBar (55% flying)
+  - **Distance by mode**: 13 transport modes — flying, driving, train, motorcycling, ferry, walking, cycling, bus, subway, running, tram, skiing, other
+  - **Record cards**: Busiest year (2018), longest flight, most active day
+  - **Year-by-year cards**: Each year as MagicCard with country flags (tooltips), 70/30 hover-expanding transport mode bar, 6-stat grid (places, days, km/d, timezones, trips, top mode)
+  - **Reviews**: 638 reviews across 26 countries, 4.85 avg rating, breakdown by country + star distribution
+  - **AI Deep Analysis**: 10 Groq-generated insights in 5 categories — Travel Personality, Evolution, Hidden Patterns, Scale & Comparisons, Quirky Deep Cuts. Pre-computes Earth multiples, Moon %, mode percentages to avoid LLM math errors
+  - **Monthly marquee**: Top 20 months by km, scrolling ticker
+
+- **PhotoHeatmap** — interactive Leaflet world map
+  - **Heat layer**: Visit density from 18,851 locations, aggregated to ~11km grid cells. Gradient: dark blue → blue → green → yellow → red
+  - **Photo markers**: Top 488 most-viewed photos as red dots, click for popup with thumbnail (400x300), view count, date, description
+  - **Review markers**: Yellow dots with star rating popup, review text, date
+  - **Dark mode**: Auto-switches between CARTO dark/light tiles
+  - **Stats bar**: Tracked visits, geotagged photos, photo views, reviews (NumberTicker)
+
 ### Other
 - **Dark mode** with localStorage persistence and flash prevention
 - **Friends-only auth gate** — 3-step quiz (Skoda -> Verstappen -> France joke)
@@ -137,18 +203,28 @@ where-is-gio/
 ├── .node-version                 # Node 20 for Railway
 ├── railway.json                  # Build/start config
 ├── hosting-overrides.json        # Committed hosting data (survives deploys)
-├── data/flights.csv              # Flight history data
-├── data/visited-countries.json   # All-time visited countries
+├── flights_export.csv            # Flight history data (committed)
+├── visited-countries.json        # All-time visited countries (committed)
 ├── instrumentation.ts            # Next.js startup hook: auto-warms caches
+│
+├── data/
+│   ├── globe.json                # 3D globe country geometry
+│   ├── maps-stats.json           # Aggregated Maps analytics (committed, no GPS)
+│   └── maps-heatmap.json         # Heatmap grid + photo/review coords (committed)
+│
+├── scripts/
+│   └── process-maps-data.ts      # CLI: processes Google Maps Takeout → stats + heatmap
 │
 ├── app/
 │   ├── layout.tsx                # Root layout, Geist font, dark mode
-│   ├── page.tsx                  # Server component: reads cache, renders CalendarWrapper
-│   ├── globals.css               # Tailwind v4 + shadcn vars + custom animations
-│   └── api/sync/route.ts         # Notion + Groq parse + AI monthly insights
+│   ├── page.tsx                  # Server component: reads cache + JSON, renders CalendarWrapper
+│   ├── globals.css               # Tailwind v4 + shadcn vars + Leaflet overrides + custom animations
+│   ├── api/sync/route.ts         # Notion + Groq parse + AI monthly insights
+│   ├── api/maps-stats/route.ts   # GET: returns maps-stats.json
+│   └── api/maps-stats/insights/route.ts  # POST: generates Groq insights, updates JSON
 │
 ├── components/
-│   ├── ui/                       # shadcn + MagicUI components (15 files)
+│   ├── ui/                       # shadcn + MagicUI components (17 files)
 │   │   ├── animated-circular-progress-bar.tsx  # Animated progress ring
 │   │   ├── animated-gradient-text.tsx          # MagicUI gradient text
 │   │   ├── animated-shiny-text.tsx             # MagicUI shiny text
@@ -160,7 +236,7 @@ where-is-gio/
 │   │   ├── number-ticker.tsx                   # MagicUI counting animation
 │   │   ├── text-reveal.tsx                     # MagicUI scroll-driven text reveal
 │   │   └── (badge, card, drawer, popover, tooltip).tsx  # shadcn/ui primitives
-│   ├── calendar-wrapper.tsx      # Client boundary: state, scroll, sections
+│   ├── calendar-wrapper.tsx      # Client boundary: state, scroll, all sections
 │   ├── header.tsx                # Current location + countdown + timezone (MagicCard)
 │   ├── timezone-display.tsx      # Live timezone comparison widget (clickable)
 │   ├── meeting-planner.tsx       # Meeting planner Popover/Drawer with hour grid
@@ -174,29 +250,38 @@ where-is-gio/
 │   ├── flight-stats.tsx          # Flight analytics (BlurFade, CircularProgressBar, MagicCard bento, route marquee)
 │   ├── flight-map.tsx            # 3D globe with BorderBeam + flight arcs + camera tracking + frosted overlays
 │   ├── country-tracker.tsx       # All-time visited countries (CircularProgressBar, MagicCard, flag marquee)
+│   ├── maps-stats.tsx            # Google Maps movement history dashboard (year cards, transport bars, AI insights)
+│   ├── photo-heatmap.tsx         # Leaflet heatmap wrapper (stats bar + dynamic map import)
+│   ├── heatmap-map.tsx           # Leaflet map: heat layer + photo markers + review markers
 │   ├── auth-gate.tsx             # Friends-only quiz gate
 │   ├── admin-pin-gate.tsx        # PIN-based admin authentication
 │   ├── when-calendar.tsx         # Thailand hosting availability calendar
 │   └── theme-toggle.tsx          # Dark/light mode toggle
 │
 ├── lib/
-│   ├── types.ts                  # All TypeScript interfaces
+│   ├── types.ts                  # All TypeScript interfaces (TravelSegment, FlightRecord, MapsStatsData, HeatmapData, etc.)
 │   ├── utils.ts                  # Utility helpers (cn class merger)
 │   ├── ai-parser.ts              # Groq: segment parsing + monthly insights
 │   ├── cache.ts                  # File cache (.cache/segments.json)
 │   ├── calendar-utils.ts         # Date gen, segment assignment, week numbers
 │   ├── timezone.ts               # Shared TZ utilities: offsets, IANA map, meeting grid logic
-│   ├── countries.ts              # Country -> color/flag mapping
+│   ├── countries.ts              # Country code → name/color/flag mapping (61 countries, no fallback gaps)
+│   ├── country-bbox.ts           # Coordinate → ISO-2 country code lookup (bounding boxes + US/CA border)
 │   ├── notion.ts                 # Notion API block fetching with pagination
 │   ├── flights-parser.ts         # CSV parsing, flight analytics
 │   ├── flights-cache.ts          # Flight analytics cache
 │   ├── airport-coords.ts         # Lat/lng for 37+ airports
 │   ├── city-country-map.ts       # City → country code mapping for flights
 │   ├── city-coords.ts            # City/country → [lat, lng] mapping for GioLocator
+│   ├── timeline-parser.ts        # Google Maps Timeline processor (visits, activities, distance, reviews, photos, heatmap)
+│   ├── leaflet-heat.d.ts         # Type shim for leaflet.heat (no @types package)
 │   └── hosting.ts                # Hosting overrides (committed JSON)
 │
 ├── hooks/
 │   └── use-is-mobile.ts          # Shared hook: pointer:coarse media query
+│
+├── public/
+│   └── photos/heatmap/           # 488 resized photo thumbnails (400x300 JPEG)
 │
 └── .cache/                       # Gitignored runtime cache
     └── segments.json             # Travel data + monthInsights from sync
@@ -204,30 +289,101 @@ where-is-gio/
 
 ---
 
-## Caching Strategy
+## Caching & Data Strategy
 
-| File | Contents | Updated by |
-|------|----------|-----------|
-| `.cache/segments.json` | Travel segments + AI monthly insights | `/api/sync` |
-| `hosting-overrides.json` | Hosting unavailability (committed) | `/admin/hosting` |
-| `.cache/flights-cache.json` | Parsed flight analytics | Auto on first read |
+| File | Contents | Updated by | Persists deploys? |
+|------|----------|-----------|-------------------|
+| `.cache/segments.json` | Travel segments + AI monthly insights | `/api/sync` | No (ephemeral) |
+| `hosting-overrides.json` | Hosting unavailability | `/admin/hosting` | Yes (committed) |
+| `.cache/flights-cache.json` | Parsed flight analytics | Auto on first read | No (ephemeral) |
+| `data/maps-stats.json` | Aggregated Maps analytics + AI insights | CLI script | Yes (committed) |
+| `data/maps-heatmap.json` | Heatmap grid + photo/review coords | CLI script | Yes (committed) |
+| `public/photos/heatmap/*.jpg` | 488 photo thumbnails | CLI script | Yes (committed) |
 
-The main page only reads from cache. After each Railway deploy, visit `/admin` to re-sync (cache is ephemeral). `instrumentation.ts` auto-warms flight + Notion caches on startup.
+The main page only reads from cache/JSON. After each Railway deploy, visit `/admin` to re-sync Notion data (cache is ephemeral). Maps data is committed to git and survives deploys. `instrumentation.ts` auto-warms flight + Notion caches on startup.
 
 ---
 
 ## AI Integration (Groq)
 
-Two Groq calls during sync:
+### 1. Segment Parser (Notion sync)
+- **Model:** llama-3.3-70b-versatile, temp 0.1
+- Parses raw Notion text into `TravelSegment[]`
 
-1. **Segment parser** (temp 0.1) — Parses raw Notion text into `TravelSegment[]`
-2. **Monthly insights** (temp 0.8) — Generates 12 witty, context-aware taglines. The `buildMonthContext()` function pre-computes per-month summaries (countries with cities, travel days, home days, tentative flags) so the AI gets rich context. Examples: "six flags chaos" (6-country month), "prague again already" (repeat destination), "hua hin hibernation" (home month).
+### 2. Monthly Insights (Notion sync)
+- **Model:** llama-3.3-70b-versatile, temp 0.8
+- Generates 12 witty, context-aware taglines per month
+- `buildMonthContext()` pre-computes per-month summaries (countries with cities, travel days, home days, tentative flags) so the AI gets rich context
+- Cached in `segments.json` alongside segments. Backfilled on sync if missing.
 
-Insights are cached in `segments.json` alongside segments. If segments are unchanged but insights are missing, sync backfills them without re-parsing segments.
+### 3. Maps Analytics Insights (CLI script)
+- **Model:** llama-3.3-70b-versatile, temp 0.6
+- Generates exactly 10 insights across 5 categories:
+  1. **Travel Personality** (2) — archetype analysis, explorer vs revisiter
+  2. **Evolution** (2) — inflection years, geographic shifts (NL→TH)
+  3. **Hidden Patterns** (2) — transport mode shifts, review behavior, motorcycle obsession
+  4. **Scale & Comparisons** (2) — Earth circumferences, Moon distance, tangible route comparisons
+  5. **Quirky Deep Cuts** (2) — outlier years, extreme ratios, unexpected stats
+- Pre-computes key facts (Earth multiples, Moon %, mode percentages, peak/quietest year) to avoid LLM math errors
+- Includes Gio's background context (Dutch, Thailand-based digital nomad, motorcycle rider)
+- Style: "data journalist, not travel blogger" — max 2 sentences per insight, specific numbers, no exclamation marks
 
 **Month header display:** Each month always shows two lines:
 - **Line 1 (inline):** Three stats next to month name — country count, days abroad (or "all home"/"all abroad"), and timezone switches (if > 0). Joined by " · ". Uses shared `TZ_OFFSETS` map from `lib/timezone.ts` for approximate UTC offsets. Days without a segment default to Thailand (home base).
 - **Line 2 (below):** AI tagline in italic — shown for ALL months, providing personality alongside the data.
+
+---
+
+## CLI Script: `scripts/process-maps-data.ts`
+
+Processes Google Maps Takeout exports into committed data files.
+
+```bash
+npx tsx scripts/process-maps-data.ts              # Basic: timeline + reviews + photos
+npx tsx scripts/process-maps-data.ts --insights   # + AI insights via Groq
+npx tsx scripts/process-maps-data.ts --heatmap    # + heatmap JSON + photo thumbnails (sharp)
+```
+
+**Input files (gitignored, raw GPS):**
+- `Timeline (2).json` — 233MB phone export with `semanticSegments`
+- `Takeout/Maps (your places)/Reviews.json` — Google Maps reviews
+- `Takeout/Maps/Photos and videos/*.json` — Photo metadata sidecars
+
+**Output files (committed, safe):**
+- `data/maps-stats.json` — Aggregated stats (no GPS coords/placeIds)
+- `data/maps-heatmap.json` — Heat grid cells + photo/review coords
+- `public/photos/heatmap/*.jpg` — 488 resized thumbnails (400x300, 80% JPEG via sharp)
+
+**Key processing steps:**
+1. Parse 58,892 timeline segments → 18,851 visits, 17,863 activities, 758,189 km across 13 modes
+2. Coordinate → country lookup via `country-bbox.ts` (bounding boxes + US/CA border piecewise function)
+3. Aggregate per year: visits, km, places, trips, timezones, countries, transport mode breakdown
+4. Reviews: 638 total across 26 countries, rating distribution
+5. Photos: 2,939 geotagged, sorted by `imageViews` for top photos
+6. Heatmap: Round visit coords to 1 decimal (~11km grid), skip HOME/WORK visits
+
+---
+
+## Key Modules
+
+### `lib/country-bbox.ts` — Coordinate → Country Lookup
+- ~107 bounding boxes covering countries worldwide
+- Each bbox: `[code, minLat, maxLat, minLng, maxLng, centLat, centLng]`
+- **US/Canada special case**: `usCaBorderLat(lng)` piecewise function models the actual border (49°N west, dips to 42.5°N at Great Lakes, back up to 45.5°N for Quebec/Maine)
+- Fallback: multiple bbox matches → pick closest centroid (squared distance)
+
+### `lib/countries.ts` — Country Info Registry
+- 61 countries with name, ISO-2 code, hex color, flag emoji
+- Covers all countries from: 2026 calendar, flight history, Google Maps timeline, visited countries list
+- `getCountryInfo(code)` with fallback to generated entry for unknown codes
+- Used throughout: calendar cells, year cards, transport bars, trackers
+
+### `lib/timeline-parser.ts` — Google Maps Data Processor
+- Exports: `processTimeline()`, `processReviews()`, `processPhotos()`, `extractHeatmapData()`
+- Handles the phone export `semanticSegments` format (NOT older Takeout `timelineObjects`)
+- 13 normalized activity types with `ACTIVITY_MAP`
+- Distance calculation via Haversine formula
+- Trip detection from `timelineMemory.trip` segments
 
 ---
 
@@ -236,7 +392,7 @@ Insights are cached in `segments.json` alongside segments. If segments are uncha
 ```env
 NOTION_API_KEY=           # Notion integration token
 NOTION_PAGE_ID=           # Travel outline page ID
-GROQ_API_KEY=             # Groq API key (free tier)
+GROQ_API_KEY=             # Groq API key (free tier) — used by sync + CLI + insights API
 SYNC_INTERVAL_HOURS=6     # Cache TTL in hours
 ```
 
@@ -249,4 +405,6 @@ SYNC_INTERVAL_HOURS=6     # Cache TTL in hours
 3. After deploy: visit `/admin` -> click "Sync from Notion"
 4. Custom domain: `whereisgio.com`
 
-**Note:** Railway containers are ephemeral — `.cache/` is wiped on each deploy. Re-sync from `/admin` after every deployment. `hosting-overrides.json` is committed to git and survives deploys.
+**Note:** Railway containers are ephemeral — `.cache/` is wiped on each deploy. Re-sync from `/admin` after every deployment. `hosting-overrides.json`, `data/maps-stats.json`, `data/maps-heatmap.json`, and `public/photos/heatmap/` are all committed to git and survive deploys.
+
+**To update Maps data:** Run the CLI script locally with the raw Takeout files, commit the output, and push.

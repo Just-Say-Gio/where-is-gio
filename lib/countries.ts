@@ -224,6 +224,12 @@ export const COUNTRY_MAP: Record<string, CountryInfo> = {
   SE: { name: "Sweden", code: "SE", color: "#CA8A04", flag: "\u{1F1F8}\u{1F1EA}" },
   CH: { name: "Switzerland", code: "CH", color: "#DC2626", flag: "\u{1F1E8}\u{1F1ED}" },
   CA: { name: "Canada", code: "CA", color: "#DC2626", flag: "\u{1F1E8}\u{1F1E6}" },
+  // Maps timeline countries
+  GR: { name: "Greece", code: "GR", color: "#1E40AF", flag: "\u{1F1EC}\u{1F1F7}" },
+  IL: { name: "Israel", code: "IL", color: "#1D4ED8", flag: "\u{1F1EE}\u{1F1F1}" },
+  LA: { name: "Laos", code: "LA", color: "#B45309", flag: "\u{1F1F1}\u{1F1E6}" },
+  MM: { name: "Myanmar", code: "MM", color: "#047857", flag: "\u{1F1F2}\u{1F1F2}" },
+  PK: { name: "Pakistan", code: "PK", color: "#15803D", flag: "\u{1F1F5}\u{1F1F0}" },
 };
 
 const FALLBACK_COLORS = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { CalendarDay, TravelSegment, FlightAnalytics, VisitedCountriesData, YearSummary } from "@/lib/types";
+import { CalendarDay, TravelSegment, FlightAnalytics, VisitedCountriesData, YearSummary, MapsStatsData, HeatmapData } from "@/lib/types";
 import { getCurrentSegment, getNextSegment } from "@/lib/calendar-utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BlurFade } from "@/components/ui/blur-fade";
@@ -16,6 +16,8 @@ import { CalendarLayoutToggle } from "./calendar-layout-toggle";
 import { AuthGate } from "./auth-gate";
 import { GioLocator } from "./gio-locator";
 import { TextReveal } from "./ui/text-reveal";
+import { MapsStats } from "./maps-stats";
+import { PhotoHeatmap } from "./photo-heatmap";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -25,6 +27,8 @@ interface CalendarWrapperProps {
   visitedCountries: VisitedCountriesData | null;
   monthInsights: string[] | null;
   yearSummary: YearSummary | null;
+  mapsStats: MapsStatsData | null;
+  heatmapData: HeatmapData | null;
 }
 
 export function CalendarWrapper({
@@ -35,6 +39,8 @@ export function CalendarWrapper({
   visitedCountries,
   monthInsights,
   yearSummary,
+  mapsStats,
+  heatmapData,
 }: CalendarWrapperProps) {
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [today, setToday] = useState<string>("");
@@ -153,12 +159,7 @@ export function CalendarWrapper({
 
         {/* GioLocator — radar distance widget */}
         <BlurFade delay={0.15} inView>
-          <div className="mt-10 pt-6 border-t">
-            <h2 className="text-center text-sm font-semibold text-muted-foreground mb-5 tracking-widest uppercase">
-              Gio Locator
-            </h2>
-            <GioLocator currentSegment={currentSegment} />
-          </div>
+          <GioLocator currentSegment={currentSegment} />
         </BlurFade>
 
         {/* Transition: GioLocator → All-Time Stats */}
@@ -193,7 +194,34 @@ export function CalendarWrapper({
           </BlurFade>
         )}
 
-        {/* 4. Scratch Map */}
+        {/* 4. Movement History (Google Maps data) */}
+        {mapsStats && (
+          <BlurFade delay={0.15} inView>
+            <div className="mt-10 pt-6 border-t">
+              <h2 className="text-center text-sm font-semibold text-muted-foreground mb-1 tracking-widest uppercase">
+                Movement History
+              </h2>
+              <p className="text-center text-xs text-muted-foreground mb-5">
+                {mapsStats.counts.totalDaysTracked.toLocaleString()} days of GPS data since {mapsStats.dataRange.start.slice(0, 4)}
+              </p>
+              <MapsStats stats={mapsStats} />
+            </div>
+          </BlurFade>
+        )}
+
+        {/* 5. Photo Heatmap */}
+        {heatmapData && (
+          <BlurFade delay={0.15} inView>
+            <div className="mt-6">
+              <h3 className="text-center text-xs font-semibold text-muted-foreground mb-3 tracking-widest uppercase">
+                Photo Heatmap
+              </h3>
+              <PhotoHeatmap data={heatmapData} />
+            </div>
+          </BlurFade>
+        )}
+
+        {/* 6. Scratch Map */}
         <BlurFade delay={0.15} inView>
           <div className="mt-10 pt-6 border-t">
             <h2 className="text-center text-sm font-semibold text-muted-foreground mb-2 tracking-widest uppercase">

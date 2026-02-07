@@ -1,0 +1,1469 @@
+{
+  "processedAt": "2026-02-07T21:39:16.480Z",
+  "dataRange": {
+    "start": "2014-06-09",
+    "end": "2026-02-08"
+  },
+  "distance": {
+    "totalKm": 758189,
+    "flying": 414289,
+    "driving": 253352,
+    "train": 35953,
+    "motorcycling": 22447,
+    "ferry": 12684,
+    "walking": 3210,
+    "cycling": 2775,
+    "bus": 1129,
+    "subway": 1096,
+    "running": 599,
+    "tram": 93,
+    "skiing": 53,
+    "other": 10508
+  },
+  "counts": {
+    "totalVisits": 18851,
+    "uniquePlaces": 5190,
+    "totalActivities": 17863,
+    "totalTrips": 212,
+    "totalDaysTracked": 3642,
+    "totalSegments": 58892
+  },
+  "yearlyStats": [
+    {
+      "year": 2014,
+      "visits": 26,
+      "activities": 17,
+      "totalKm": 78,
+      "distanceByMode": {
+        "cycling": 1,
+        "walking": 1,
+        "other": 0,
+        "driving": 76
+      },
+      "uniquePlaces": 16,
+      "daysTracked": 46,
+      "trips": 2,
+      "timezones": 3,
+      "topMode": "driving",
+      "kmPerDay": 2,
+      "countries": [
+        "IT",
+        "NL",
+        "TH"
+      ]
+    },
+    {
+      "year": 2015,
+      "visits": 55,
+      "activities": 62,
+      "totalKm": 322,
+      "distanceByMode": {
+        "other": 0,
+        "driving": 278,
+        "cycling": 39,
+        "walking": 5
+      },
+      "uniquePlaces": 33,
+      "daysTracked": 65,
+      "trips": 2,
+      "timezones": 3,
+      "topMode": "driving",
+      "kmPerDay": 5,
+      "countries": [
+        "NL",
+        "SI"
+      ]
+    },
+    {
+      "year": 2016,
+      "visits": 1407,
+      "activities": 1632,
+      "totalKm": 55365,
+      "distanceByMode": {
+        "driving": 30451,
+        "walking": 261,
+        "other": 91,
+        "cycling": 717,
+        "subway": 56,
+        "train": 4492,
+        "flying": 19016,
+        "motorcycling": 115,
+        "bus": 150,
+        "tram": 16
+      },
+      "uniquePlaces": 334,
+      "daysTracked": 296,
+      "trips": 11,
+      "timezones": 4,
+      "topMode": "driving",
+      "kmPerDay": 187,
+      "countries": [
+        "AT",
+        "BE",
+        "DE",
+        "HR",
+        "KH",
+        "LA",
+        "NL",
+        "SI",
+        "TH",
+        "US",
+        "VN"
+      ]
+    },
+    {
+      "year": 2017,
+      "visits": 1945,
+      "activities": 1884,
+      "totalKm": 73955,
+      "distanceByMode": {
+        "driving": 15921,
+        "walking": 1462,
+        "cycling": 1108,
+        "flying": 34210,
+        "train": 7813,
+        "bus": 293,
+        "motorcycling": 10277,
+        "subway": 174,
+        "other": 113,
+        "tram": 0,
+        "running": 43,
+        "ferry": 2542
+      },
+      "uniquePlaces": 463,
+      "daysTracked": 357,
+      "trips": 15,
+      "timezones": 4,
+      "topMode": "flying",
+      "kmPerDay": 207,
+      "countries": [
+        "BE",
+        "CR",
+        "DE",
+        "DK",
+        "ES",
+        "NL",
+        "NO",
+        "SE",
+        "US"
+      ]
+    },
+    {
+      "year": 2018,
+      "visits": 2601,
+      "activities": 2708,
+      "totalKm": 96080,
+      "distanceByMode": {
+        "driving": 30513,
+        "other": 6,
+        "flying": 53145,
+        "motorcycling": 1429,
+        "cycling": 242,
+        "train": 9792,
+        "walking": 411,
+        "subway": 251,
+        "bus": 135,
+        "tram": 23,
+        "running": 23,
+        "ferry": 109
+      },
+      "uniquePlaces": 752,
+      "daysTracked": 353,
+      "trips": 21,
+      "timezones": 9,
+      "topMode": "flying",
+      "kmPerDay": 272,
+      "countries": [
+        "AE",
+        "AT",
+        "BE",
+        "CH",
+        "CN",
+        "DE",
+        "FR",
+        "HR",
+        "JP",
+        "NL",
+        "SI",
+        "TH",
+        "TR",
+        "US"
+      ]
+    },
+    {
+      "year": 2019,
+      "visits": 1841,
+      "activities": 1712,
+      "totalKm": 88699,
+      "distanceByMode": {
+        "walking": 214,
+        "motorcycling": 961,
+        "driving": 45650,
+        "flying": 34091,
+        "train": 7016,
+        "bus": 183,
+        "cycling": 160,
+        "subway": 274,
+        "ferry": 140,
+        "tram": 11,
+        "other": 0
+      },
+      "uniquePlaces": 805,
+      "daysTracked": 315,
+      "trips": 47,
+      "timezones": 5,
+      "topMode": "driving",
+      "kmPerDay": 282,
+      "countries": [
+        "AT",
+        "BA",
+        "BE",
+        "CH",
+        "CN",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FR",
+        "HK",
+        "HR",
+        "HU",
+        "IT",
+        "KR",
+        "LU",
+        "MO",
+        "MY",
+        "NL",
+        "PL",
+        "SI",
+        "SK",
+        "TH"
+      ]
+    },
+    {
+      "year": 2020,
+      "visits": 1484,
+      "activities": 1320,
+      "totalKm": 33053,
+      "distanceByMode": {
+        "driving": 27631,
+        "flying": 1590,
+        "cycling": 213,
+        "train": 3256,
+        "walking": 81,
+        "bus": 72,
+        "running": 79,
+        "motorcycling": 23,
+        "other": 0,
+        "subway": 26,
+        "tram": 4,
+        "ferry": 77
+      },
+      "uniquePlaces": 507,
+      "daysTracked": 366,
+      "trips": 31,
+      "timezones": 2,
+      "topMode": "driving",
+      "kmPerDay": 90,
+      "countries": [
+        "AT",
+        "BA",
+        "BE",
+        "CH",
+        "DE",
+        "ES",
+        "FR",
+        "HR",
+        "IT",
+        "LU",
+        "NL",
+        "SI"
+      ]
+    },
+    {
+      "year": 2021,
+      "visits": 1568,
+      "activities": 1391,
+      "totalKm": 47067,
+      "distanceByMode": {
+        "driving": 15324,
+        "running": 225,
+        "walking": 148,
+        "train": 1646,
+        "flying": 27658,
+        "tram": 6,
+        "subway": 23,
+        "motorcycling": 1352,
+        "ferry": 399,
+        "bus": 21,
+        "cycling": 49,
+        "other": 216
+      },
+      "uniquePlaces": 527,
+      "daysTracked": 358,
+      "trips": 25,
+      "timezones": 5,
+      "topMode": "flying",
+      "kmPerDay": 131,
+      "countries": [
+        "AE",
+        "BE",
+        "CW",
+        "DE",
+        "LU",
+        "NL",
+        "TH"
+      ]
+    },
+    {
+      "year": 2022,
+      "visits": 2000,
+      "activities": 1712,
+      "totalKm": 43188,
+      "distanceByMode": {
+        "walking": 161,
+        "driving": 21293,
+        "motorcycling": 2722,
+        "ferry": 100,
+        "train": 602,
+        "flying": 17908,
+        "cycling": 157,
+        "subway": 80,
+        "running": 138,
+        "tram": 20,
+        "bus": 7
+      },
+      "uniquePlaces": 883,
+      "daysTracked": 354,
+      "trips": 24,
+      "timezones": 4,
+      "topMode": "driving",
+      "kmPerDay": 122,
+      "countries": [
+        "AE",
+        "CH",
+        "DE",
+        "FR",
+        "GB",
+        "IT",
+        "LA",
+        "MM",
+        "NL",
+        "TH"
+      ]
+    },
+    {
+      "year": 2023,
+      "visits": 2093,
+      "activities": 1864,
+      "totalKm": 61217,
+      "distanceByMode": {
+        "driving": 17544,
+        "running": 45,
+        "motorcycling": 4664,
+        "walking": 96,
+        "ferry": 168,
+        "subway": 55,
+        "other": 10080,
+        "cycling": 9,
+        "train": 87,
+        "flying": 28438,
+        "bus": 31
+      },
+      "uniquePlaces": 655,
+      "daysTracked": 363,
+      "trips": 15,
+      "timezones": 4,
+      "topMode": "flying",
+      "kmPerDay": 169,
+      "countries": [
+        "DE",
+        "KH",
+        "LA",
+        "MY",
+        "NL",
+        "PL",
+        "SG",
+        "TH",
+        "TW",
+        "VN"
+      ]
+    },
+    {
+      "year": 2024,
+      "visits": 1789,
+      "activities": 1712,
+      "totalKm": 69466,
+      "distanceByMode": {
+        "cycling": 26,
+        "driving": 24279,
+        "walking": 171,
+        "other": 1,
+        "flying": 34253,
+        "motorcycling": 542,
+        "train": 1085,
+        "bus": 89,
+        "running": 10,
+        "subway": 37,
+        "ferry": 8973
+      },
+      "uniquePlaces": 603,
+      "daysTracked": 366,
+      "trips": 7,
+      "timezones": 8,
+      "topMode": "flying",
+      "kmPerDay": 190,
+      "countries": [
+        "BE",
+        "BH",
+        "CH",
+        "CN",
+        "DE",
+        "ES",
+        "FR",
+        "GR",
+        "IL",
+        "IN",
+        "IT",
+        "JO",
+        "NL",
+        "OM",
+        "PK",
+        "PT",
+        "QA",
+        "SA",
+        "TH",
+        "TW"
+      ]
+    },
+    {
+      "year": 2025,
+      "visits": 1895,
+      "activities": 1701,
+      "totalKm": 175462,
+      "distanceByMode": {
+        "driving": 23090,
+        "walking": 176,
+        "flying": 151086,
+        "bus": 149,
+        "skiing": 53,
+        "motorcycling": 360,
+        "running": 19,
+        "train": 165,
+        "subway": 119,
+        "tram": 13,
+        "ferry": 176,
+        "cycling": 55
+      },
+      "uniquePlaces": 735,
+      "daysTracked": 365,
+      "trips": 11,
+      "timezones": 14,
+      "topMode": "flying",
+      "kmPerDay": 481,
+      "countries": [
+        "AT",
+        "BD",
+        "CA",
+        "CN",
+        "CZ",
+        "DE",
+        "IN",
+        "JP",
+        "KR",
+        "LA",
+        "NL",
+        "NP",
+        "PH",
+        "SG",
+        "TH",
+        "TW",
+        "US"
+      ]
+    },
+    {
+      "year": 2026,
+      "visits": 147,
+      "activities": 148,
+      "totalKm": 14237,
+      "distanceByMode": {
+        "driving": 1302,
+        "walking": 23,
+        "flying": 12893,
+        "running": 17,
+        "motorcycling": 2
+      },
+      "uniquePlaces": 64,
+      "daysTracked": 38,
+      "trips": 1,
+      "timezones": 4,
+      "topMode": "flying",
+      "kmPerDay": 375,
+      "countries": [
+        "TH",
+        "TW",
+        "US"
+      ]
+    }
+  ],
+  "monthlyStats": [
+    {
+      "month": "2014-06",
+      "visits": 13,
+      "activities": 7,
+      "totalKm": 2
+    },
+    {
+      "month": "2014-07",
+      "visits": 10,
+      "activities": 2,
+      "totalKm": 0
+    },
+    {
+      "month": "2014-08",
+      "visits": 1,
+      "activities": 0,
+      "totalKm": 0
+    },
+    {
+      "month": "2014-09",
+      "visits": 1,
+      "activities": 2,
+      "totalKm": 67
+    },
+    {
+      "month": "2014-10",
+      "visits": 1,
+      "activities": 3,
+      "totalKm": 3
+    },
+    {
+      "month": "2014-11",
+      "visits": 0,
+      "activities": 1,
+      "totalKm": 0
+    },
+    {
+      "month": "2014-12",
+      "visits": 0,
+      "activities": 2,
+      "totalKm": 5
+    },
+    {
+      "month": "2015-01",
+      "visits": 1,
+      "activities": 1,
+      "totalKm": 0
+    },
+    {
+      "month": "2015-02",
+      "visits": 0,
+      "activities": 3,
+      "totalKm": 3
+    },
+    {
+      "month": "2015-03",
+      "visits": 0,
+      "activities": 1,
+      "totalKm": 4
+    },
+    {
+      "month": "2015-04",
+      "visits": 11,
+      "activities": 7,
+      "totalKm": 5
+    },
+    {
+      "month": "2015-05",
+      "visits": 1,
+      "activities": 2,
+      "totalKm": 46
+    },
+    {
+      "month": "2015-06",
+      "visits": 7,
+      "activities": 2,
+      "totalKm": 9
+    },
+    {
+      "month": "2015-07",
+      "visits": 13,
+      "activities": 5,
+      "totalKm": 143
+    },
+    {
+      "month": "2015-08",
+      "visits": 1,
+      "activities": 1,
+      "totalKm": 0
+    },
+    {
+      "month": "2015-09",
+      "visits": 5,
+      "activities": 5,
+      "totalKm": 6
+    },
+    {
+      "month": "2015-10",
+      "visits": 3,
+      "activities": 13,
+      "totalKm": 27
+    },
+    {
+      "month": "2015-11",
+      "visits": 1,
+      "activities": 4,
+      "totalKm": 10
+    },
+    {
+      "month": "2015-12",
+      "visits": 12,
+      "activities": 18,
+      "totalKm": 68
+    },
+    {
+      "month": "2016-01",
+      "visits": 1,
+      "activities": 6,
+      "totalKm": 46
+    },
+    {
+      "month": "2016-02",
+      "visits": 5,
+      "activities": 8,
+      "totalKm": 24
+    },
+    {
+      "month": "2016-03",
+      "visits": 152,
+      "activities": 160,
+      "totalKm": 278
+    },
+    {
+      "month": "2016-04",
+      "visits": 132,
+      "activities": 125,
+      "totalKm": 17864
+    },
+    {
+      "month": "2016-05",
+      "visits": 153,
+      "activities": 153,
+      "totalKm": 1113
+    },
+    {
+      "month": "2016-06",
+      "visits": 172,
+      "activities": 188,
+      "totalKm": 16429
+    },
+    {
+      "month": "2016-07",
+      "visits": 105,
+      "activities": 127,
+      "totalKm": 1229
+    },
+    {
+      "month": "2016-08",
+      "visits": 109,
+      "activities": 194,
+      "totalKm": 1105
+    },
+    {
+      "month": "2016-09",
+      "visits": 153,
+      "activities": 171,
+      "totalKm": 1818
+    },
+    {
+      "month": "2016-10",
+      "visits": 138,
+      "activities": 175,
+      "totalKm": 2699
+    },
+    {
+      "month": "2016-11",
+      "visits": 201,
+      "activities": 215,
+      "totalKm": 2800
+    },
+    {
+      "month": "2016-12",
+      "visits": 86,
+      "activities": 110,
+      "totalKm": 9959
+    },
+    {
+      "month": "2017-01",
+      "visits": 115,
+      "activities": 113,
+      "totalKm": 9322
+    },
+    {
+      "month": "2017-02",
+      "visits": 133,
+      "activities": 150,
+      "totalKm": 2315
+    },
+    {
+      "month": "2017-03",
+      "visits": 156,
+      "activities": 154,
+      "totalKm": 1955
+    },
+    {
+      "month": "2017-04",
+      "visits": 159,
+      "activities": 111,
+      "totalKm": 17635
+    },
+    {
+      "month": "2017-05",
+      "visits": 153,
+      "activities": 145,
+      "totalKm": 12077
+    },
+    {
+      "month": "2017-06",
+      "visits": 164,
+      "activities": 160,
+      "totalKm": 4367
+    },
+    {
+      "month": "2017-07",
+      "visits": 195,
+      "activities": 161,
+      "totalKm": 8077
+    },
+    {
+      "month": "2017-08",
+      "visits": 143,
+      "activities": 117,
+      "totalKm": 1140
+    },
+    {
+      "month": "2017-09",
+      "visits": 193,
+      "activities": 188,
+      "totalKm": 2481
+    },
+    {
+      "month": "2017-10",
+      "visits": 172,
+      "activities": 187,
+      "totalKm": 1723
+    },
+    {
+      "month": "2017-11",
+      "visits": 194,
+      "activities": 222,
+      "totalKm": 2559
+    },
+    {
+      "month": "2017-12",
+      "visits": 168,
+      "activities": 176,
+      "totalKm": 10304
+    },
+    {
+      "month": "2018-01",
+      "visits": 152,
+      "activities": 195,
+      "totalKm": 11657
+    },
+    {
+      "month": "2018-02",
+      "visits": 143,
+      "activities": 165,
+      "totalKm": 3824
+    },
+    {
+      "month": "2018-03",
+      "visits": 225,
+      "activities": 242,
+      "totalKm": 6742
+    },
+    {
+      "month": "2018-04",
+      "visits": 248,
+      "activities": 285,
+      "totalKm": 10388
+    },
+    {
+      "month": "2018-05",
+      "visits": 253,
+      "activities": 255,
+      "totalKm": 13138
+    },
+    {
+      "month": "2018-06",
+      "visits": 248,
+      "activities": 243,
+      "totalKm": 2733
+    },
+    {
+      "month": "2018-07",
+      "visits": 150,
+      "activities": 158,
+      "totalKm": 8905
+    },
+    {
+      "month": "2018-08",
+      "visits": 216,
+      "activities": 208,
+      "totalKm": 5521
+    },
+    {
+      "month": "2018-09",
+      "visits": 294,
+      "activities": 303,
+      "totalKm": 5204
+    },
+    {
+      "month": "2018-10",
+      "visits": 270,
+      "activities": 266,
+      "totalKm": 4457
+    },
+    {
+      "month": "2018-11",
+      "visits": 198,
+      "activities": 192,
+      "totalKm": 8506
+    },
+    {
+      "month": "2018-12",
+      "visits": 204,
+      "activities": 196,
+      "totalKm": 15004
+    },
+    {
+      "month": "2019-01",
+      "visits": 157,
+      "activities": 141,
+      "totalKm": 26645
+    },
+    {
+      "month": "2019-02",
+      "visits": 190,
+      "activities": 169,
+      "totalKm": 17203
+    },
+    {
+      "month": "2019-03",
+      "visits": 163,
+      "activities": 170,
+      "totalKm": 3178
+    },
+    {
+      "month": "2019-04",
+      "visits": 258,
+      "activities": 237,
+      "totalKm": 5380
+    },
+    {
+      "month": "2019-05",
+      "visits": 159,
+      "activities": 148,
+      "totalKm": 4283
+    },
+    {
+      "month": "2019-06",
+      "visits": 136,
+      "activities": 129,
+      "totalKm": 2698
+    },
+    {
+      "month": "2019-07",
+      "visits": 173,
+      "activities": 147,
+      "totalKm": 3337
+    },
+    {
+      "month": "2019-08",
+      "visits": 139,
+      "activities": 124,
+      "totalKm": 12393
+    },
+    {
+      "month": "2019-10",
+      "visits": 180,
+      "activities": 173,
+      "totalKm": 7477
+    },
+    {
+      "month": "2019-11",
+      "visits": 142,
+      "activities": 141,
+      "totalKm": 2367
+    },
+    {
+      "month": "2019-12",
+      "visits": 144,
+      "activities": 133,
+      "totalKm": 3738
+    },
+    {
+      "month": "2020-01",
+      "visits": 133,
+      "activities": 127,
+      "totalKm": 4364
+    },
+    {
+      "month": "2020-02",
+      "visits": 139,
+      "activities": 125,
+      "totalKm": 2849
+    },
+    {
+      "month": "2020-03",
+      "visits": 141,
+      "activities": 127,
+      "totalKm": 2700
+    },
+    {
+      "month": "2020-04",
+      "visits": 134,
+      "activities": 108,
+      "totalKm": 1501
+    },
+    {
+      "month": "2020-05",
+      "visits": 86,
+      "activities": 75,
+      "totalKm": 1566
+    },
+    {
+      "month": "2020-06",
+      "visits": 117,
+      "activities": 100,
+      "totalKm": 1095
+    },
+    {
+      "month": "2020-07",
+      "visits": 198,
+      "activities": 158,
+      "totalKm": 5988
+    },
+    {
+      "month": "2020-08",
+      "visits": 140,
+      "activities": 123,
+      "totalKm": 5201
+    },
+    {
+      "month": "2020-09",
+      "visits": 120,
+      "activities": 115,
+      "totalKm": 2168
+    },
+    {
+      "month": "2020-10",
+      "visits": 97,
+      "activities": 93,
+      "totalKm": 1695
+    },
+    {
+      "month": "2020-11",
+      "visits": 113,
+      "activities": 105,
+      "totalKm": 2028
+    },
+    {
+      "month": "2020-12",
+      "visits": 66,
+      "activities": 64,
+      "totalKm": 1898
+    },
+    {
+      "month": "2021-01",
+      "visits": 44,
+      "activities": 43,
+      "totalKm": 1442
+    },
+    {
+      "month": "2021-02",
+      "visits": 73,
+      "activities": 69,
+      "totalKm": 953
+    },
+    {
+      "month": "2021-03",
+      "visits": 96,
+      "activities": 88,
+      "totalKm": 9176
+    },
+    {
+      "month": "2021-04",
+      "visits": 89,
+      "activities": 82,
+      "totalKm": 9673
+    },
+    {
+      "month": "2021-05",
+      "visits": 122,
+      "activities": 113,
+      "totalKm": 2284
+    },
+    {
+      "month": "2021-06",
+      "visits": 170,
+      "activities": 151,
+      "totalKm": 2831
+    },
+    {
+      "month": "2021-07",
+      "visits": 163,
+      "activities": 158,
+      "totalKm": 2365
+    },
+    {
+      "month": "2021-08",
+      "visits": 180,
+      "activities": 160,
+      "totalKm": 2674
+    },
+    {
+      "month": "2021-09",
+      "visits": 172,
+      "activities": 141,
+      "totalKm": 12110
+    },
+    {
+      "month": "2021-10",
+      "visits": 178,
+      "activities": 143,
+      "totalKm": 754
+    },
+    {
+      "month": "2021-11",
+      "visits": 140,
+      "activities": 116,
+      "totalKm": 590
+    },
+    {
+      "month": "2021-12",
+      "visits": 141,
+      "activities": 127,
+      "totalKm": 2216
+    },
+    {
+      "month": "2022-01",
+      "visits": 151,
+      "activities": 111,
+      "totalKm": 512
+    },
+    {
+      "month": "2022-02",
+      "visits": 122,
+      "activities": 110,
+      "totalKm": 607
+    },
+    {
+      "month": "2022-03",
+      "visits": 207,
+      "activities": 167,
+      "totalKm": 3033
+    },
+    {
+      "month": "2022-04",
+      "visits": 166,
+      "activities": 123,
+      "totalKm": 2224
+    },
+    {
+      "month": "2022-05",
+      "visits": 89,
+      "activities": 75,
+      "totalKm": 679
+    },
+    {
+      "month": "2022-06",
+      "visits": 111,
+      "activities": 92,
+      "totalKm": 2182
+    },
+    {
+      "month": "2022-07",
+      "visits": 197,
+      "activities": 162,
+      "totalKm": 8718
+    },
+    {
+      "month": "2022-08",
+      "visits": 211,
+      "activities": 194,
+      "totalKm": 3318
+    },
+    {
+      "month": "2022-09",
+      "visits": 200,
+      "activities": 197,
+      "totalKm": 4931
+    },
+    {
+      "month": "2022-10",
+      "visits": 162,
+      "activities": 151,
+      "totalKm": 3411
+    },
+    {
+      "month": "2022-11",
+      "visits": 187,
+      "activities": 171,
+      "totalKm": 11675
+    },
+    {
+      "month": "2022-12",
+      "visits": 197,
+      "activities": 159,
+      "totalKm": 1899
+    },
+    {
+      "month": "2023-01",
+      "visits": 170,
+      "activities": 139,
+      "totalKm": 1058
+    },
+    {
+      "month": "2023-02",
+      "visits": 157,
+      "activities": 148,
+      "totalKm": 695
+    },
+    {
+      "month": "2023-03",
+      "visits": 190,
+      "activities": 174,
+      "totalKm": 1212
+    },
+    {
+      "month": "2023-04",
+      "visits": 142,
+      "activities": 129,
+      "totalKm": 1227
+    },
+    {
+      "month": "2023-05",
+      "visits": 120,
+      "activities": 113,
+      "totalKm": 1376
+    },
+    {
+      "month": "2023-06",
+      "visits": 148,
+      "activities": 142,
+      "totalKm": 2559
+    },
+    {
+      "month": "2023-07",
+      "visits": 169,
+      "activities": 141,
+      "totalKm": 15790
+    },
+    {
+      "month": "2023-08",
+      "visits": 230,
+      "activities": 212,
+      "totalKm": 2224
+    },
+    {
+      "month": "2023-09",
+      "visits": 196,
+      "activities": 163,
+      "totalKm": 5916
+    },
+    {
+      "month": "2023-10",
+      "visits": 189,
+      "activities": 162,
+      "totalKm": 6490
+    },
+    {
+      "month": "2023-11",
+      "visits": 203,
+      "activities": 176,
+      "totalKm": 18624
+    },
+    {
+      "month": "2023-12",
+      "visits": 179,
+      "activities": 165,
+      "totalKm": 4047
+    },
+    {
+      "month": "2024-01",
+      "visits": 209,
+      "activities": 192,
+      "totalKm": 4975
+    },
+    {
+      "month": "2024-02",
+      "visits": 192,
+      "activities": 168,
+      "totalKm": 1868
+    },
+    {
+      "month": "2024-03",
+      "visits": 134,
+      "activities": 116,
+      "totalKm": 4194
+    },
+    {
+      "month": "2024-04",
+      "visits": 187,
+      "activities": 178,
+      "totalKm": 14371
+    },
+    {
+      "month": "2024-05",
+      "visits": 158,
+      "activities": 140,
+      "totalKm": 10537
+    },
+    {
+      "month": "2024-06",
+      "visits": 115,
+      "activities": 114,
+      "totalKm": 1287
+    },
+    {
+      "month": "2024-07",
+      "visits": 114,
+      "activities": 118,
+      "totalKm": 1664
+    },
+    {
+      "month": "2024-08",
+      "visits": 108,
+      "activities": 110,
+      "totalKm": 14093
+    },
+    {
+      "month": "2024-09",
+      "visits": 130,
+      "activities": 140,
+      "totalKm": 3335
+    },
+    {
+      "month": "2024-10",
+      "visits": 152,
+      "activities": 169,
+      "totalKm": 7373
+    },
+    {
+      "month": "2024-11",
+      "visits": 146,
+      "activities": 137,
+      "totalKm": 4563
+    },
+    {
+      "month": "2024-12",
+      "visits": 144,
+      "activities": 130,
+      "totalKm": 1206
+    },
+    {
+      "month": "2025-01",
+      "visits": 151,
+      "activities": 126,
+      "totalKm": 15160
+    },
+    {
+      "month": "2025-02",
+      "visits": 184,
+      "activities": 157,
+      "totalKm": 19806
+    },
+    {
+      "month": "2025-03",
+      "visits": 130,
+      "activities": 122,
+      "totalKm": 1218
+    },
+    {
+      "month": "2025-04",
+      "visits": 181,
+      "activities": 155,
+      "totalKm": 24402
+    },
+    {
+      "month": "2025-05",
+      "visits": 183,
+      "activities": 184,
+      "totalKm": 20796
+    },
+    {
+      "month": "2025-06",
+      "visits": 160,
+      "activities": 138,
+      "totalKm": 4644
+    },
+    {
+      "month": "2025-07",
+      "visits": 138,
+      "activities": 128,
+      "totalKm": 2367
+    },
+    {
+      "month": "2025-08",
+      "visits": 129,
+      "activities": 110,
+      "totalKm": 27323
+    },
+    {
+      "month": "2025-09",
+      "visits": 167,
+      "activities": 147,
+      "totalKm": 5553
+    },
+    {
+      "month": "2025-10",
+      "visits": 172,
+      "activities": 145,
+      "totalKm": 15634
+    },
+    {
+      "month": "2025-11",
+      "visits": 138,
+      "activities": 146,
+      "totalKm": 12922
+    },
+    {
+      "month": "2025-12",
+      "visits": 162,
+      "activities": 143,
+      "totalKm": 25636
+    },
+    {
+      "month": "2026-01",
+      "visits": 117,
+      "activities": 118,
+      "totalKm": 13944
+    },
+    {
+      "month": "2026-02",
+      "visits": 30,
+      "activities": 30,
+      "totalKm": 292
+    }
+  ],
+  "activityDistribution": {
+    "flying": 54.6,
+    "driving": 33.4,
+    "train": 4.7,
+    "motorcycling": 3,
+    "ferry": 1.7,
+    "walking": 0.4,
+    "cycling": 0.4,
+    "bus": 0.1,
+    "subway": 0.1,
+    "running": 0.1,
+    "other": 1.4
+  },
+  "records": {
+    "farthestTrip": {
+      "distanceKm": 14664,
+      "startDate": "2025-05-15",
+      "endDate": "2025-05-25"
+    },
+    "busiestYear": {
+      "year": 2018,
+      "visits": 2601,
+      "distanceKm": 96080
+    },
+    "mostActiveDay": {
+      "date": "2018-04-25",
+      "activities": 23
+    },
+    "longestFlight": {
+      "distanceKm": 10965,
+      "date": "2018-12-20"
+    }
+  },
+  "reviews": {
+    "total": 638,
+    "countries": 26,
+    "avgRating": 4.85,
+    "byCountry": {
+      "TW": 1,
+      "US": 30,
+      "CA": 19,
+      "TH": 99,
+      "CZ": 80,
+      "NL": 79,
+      "IN": 27,
+      "SG": 42,
+      "NP": 3,
+      "PH": 2,
+      "PT": 22,
+      "ES": 12,
+      "FR": 56,
+      "IT": 64,
+      "CH": 1,
+      "BH": 3,
+      "QA": 2,
+      "JO": 4,
+      "TR": 7,
+      "SA": 1,
+      "VN": 12,
+      "MY": 1,
+      "BE": 2,
+      "HR": 5,
+      "CR": 1,
+      "AT": 1
+    },
+    "byYear": {
+      "2016": 5,
+      "2017": 19,
+      "2018": 2,
+      "2019": 6,
+      "2020": 19,
+      "2021": 5,
+      "2022": 40,
+      "2023": 24,
+      "2024": 257,
+      "2025": 237,
+      "2026": 24
+    },
+    "ratingDistribution": {
+      "0": 414,
+      "3": 3,
+      "4": 28,
+      "5": 193
+    }
+  },
+  "photos": {
+    "total": 2986,
+    "geotagged": 2939,
+    "dateRange": {
+      "start": "2016-10-20",
+      "end": "2026-01-13"
+    },
+    "byYear": {
+      "2016": 2,
+      "2017": 6,
+      "2018": 47,
+      "2019": 419,
+      "2020": 123,
+      "2021": 249,
+      "2022": 660,
+      "2023": 16,
+      "2024": 765,
+      "2025": 695,
+      "2026": 4
+    }
+  },
+  "insights": [
+    "Gio is a hub-and-spoke traveler with a base in Thailand, making 212 trips across 5,190 places, and revisiting 50+ countries.",
+    "Gio's travel style is a mix of explorer and revisiter, with 638 reviews across 26 countries, averaging 4.85 rating.",
+    "Gio's transformation from a Netherlands-based European to a Thailand-based Asian explorer occurred between 2016 and 2018, with a significant increase in distance traveled from 55,365km to 96,080km.",
+    "The inflection years for Gio's transformation were 2017 and 2018, with a shift from European to Asian countries, visiting 9 timezones in 2018.",
+    "Gio's transport mode shifts from driving to flying, with 414,289km flown, accounting for 55% of total distance, and a notable increase in motorcycling in Thailand with 22,447km.",
+    "Gio's review behavior shows a consistent average rating of 4.85 across 26 countries, with a notable cluster of reviews in Thailand, and a seasonal rhythm of more reviews in the second half of the year.",
+    "Gio's total distance of 758,189km is equivalent to 18.9 times around the Earth, and 197.2% of the way to the Moon.",
+    "Gio's motorcycle distance of 22,447km is comparable to riding from Bangkok to Chiang Mai 44 times, and his walking distance of 3,210km is equivalent to walking from Amsterdam to Rome.",
+    "The quirkiest outlier in Gio's data is the year 2014, with only 78km traveled, and an extreme stat of 175,462km traveled in 2025, a 2,250 times increase.",
+    "The absurd ratio between Gio's peak year and quietest year is 2,250:1, with 175,462km traveled in 2025 and only 78km in 2014."
+  ]
+}

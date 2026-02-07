@@ -45,3 +45,10 @@ next-env.d.ts
 
 # file cache
 /.cache
+
+# Google Maps data (raw GPS — never commit)
+Timeline*.json
+Takeout/
+Takeout 2/
+takeout/
+google-maps-timeline-viewer/

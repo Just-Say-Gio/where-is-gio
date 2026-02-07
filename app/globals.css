@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -182,4 +183,66 @@
   animation: supermax-pulse 0.5s ease-in-out infinite;
 }
 
-/* GioLocator — sweep + blip now driven by rAF inline (no CSS keyframes needed) */
+/* GioLocator HUD effects */
+.hud-glow {
+  text-shadow: 0 0 4px rgba(168, 85, 247, 0.6), 0 0 8px rgba(168, 85, 247, 0.3), 0 0 16px rgba(168, 85, 247, 0.15);
+}
+
+.hud-panel {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+@keyframes radar-ping {
+  0% { width: 12px; height: 12px; opacity: 0.7; border-width: 2px; }
+  100% { width: 120px; height: 120px; opacity: 0; border-width: 0.5px; }
+}
+
+@keyframes blink-colon {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.animate-blink-colon {
+  animation: blink-colon 1s step-end infinite;
+}
+
+/* Leaflet popup overrides */
+.leaflet-popup-content-wrapper {
+  background: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  padding: 0 !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+.leaflet-popup-tip {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+.leaflet-popup-close-button {
+  color: var(--muted-foreground) !important;
+  font-size: 18px !important;
+  top: 6px !important;
+  right: 8px !important;
+}
+.leaflet-container {
+  font-family: inherit !important;
+}
+.leaflet-control-zoom a {
+  background: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--border) !important;
+}
+.leaflet-control-attribution {
+  background: var(--card) !important;
+  color: var(--muted-foreground) !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--muted-foreground) !important;
+}
