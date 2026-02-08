@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRiceRunData, setRiceRuns, removeRiceRuns } from "@/lib/rice-runs";
+import { withApiLogging } from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
-// GET — return all rice runs
-export async function GET() {
+async function handleGet() {
   return NextResponse.json(getRiceRunData());
 }
 
-// POST — add rice runs for given dates
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const body = await request.json();
     const { dates, note } = body as { dates: string[]; note?: string };
@@ -25,8 +24,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE — remove rice runs for given dates
-export async function DELETE(request: NextRequest) {
+async function handleDelete(request: NextRequest) {
   try {
     const body = await request.json();
     const { dates } = body as { dates: string[] };
@@ -41,3 +39,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 }
+
+export const GET = withApiLogging("/api/rice-runs", handleGet);
+export const POST = withApiLogging("/api/rice-runs", handlePost);
+export const DELETE = withApiLogging("/api/rice-runs", handleDelete);

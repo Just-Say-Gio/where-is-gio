@@ -9,10 +9,11 @@ import {
   getFlightsCacheStatus,
   getFlightsCsvHash,
 } from "@/lib/flights-cache";
+import { withApiLogging } from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+async function handlePost() {
   const steps: { step: string; status: "ok" | "skipped" | "error"; detail?: string; ms?: number }[] = [];
 
   try {
@@ -49,8 +50,11 @@ export async function POST() {
   }
 }
 
-export async function GET() {
+async function handleGet() {
   const analytics = getCachedFlightAnalytics();
   const status = getFlightsCacheStatus();
   return NextResponse.json({ ...status, analytics });
 }
+
+export const POST = withApiLogging("/api/flights", handlePost);
+export const GET = withApiLogging("/api/flights", handleGet);

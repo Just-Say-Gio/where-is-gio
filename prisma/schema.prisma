@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Chat message log — every user question and AI response
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  sessionId String
+  role      String   // "user" | "assistant"
+  content   String   @db.Text
+  ip        String?
+  userAgent String?
+  country   String?
+  durationMs Int?
+  model     String?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([ip])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+// Page view — visitor tracking
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String
+  ip        String?
+  userAgent String?  @db.Text
+  referer   String?
+  country   String?
+  city      String?
+  device    String?  // "mobile" | "desktop" | "tablet"
+  browser   String?
+  os        String?
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([ip])
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@map("page_views")
+}
+
+// API call log — every API route hit
+model ApiCall {
+  id         Int      @id @default(autoincrement())
+  method     String
+  path       String
+  statusCode Int?
+  ip         String?
+  userAgent  String?
+  durationMs Int?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([path])
+  @@index([ip])
+  @@index([createdAt])
+  @@index([path, createdAt])
+  @@map("api_calls")
+}
+
+// Generic analytics event — extensible catch-all
+model AnalyticsEvent {
+  id         Int      @id @default(autoincrement())
+  event      String
+  properties Json?
+  ip         String?
+  sessionId  String?
+  createdAt  DateTime @default(now())
+
+  @@index([event])
+  @@index([createdAt])
+  @@index([event, createdAt])
+  @@map("analytics_events")
+}
+
+// Persistent rate limiting — survives Railway deploys
+model RateLimit {
+  id          Int      @id @default(autoincrement())
+  ip          String
+  endpoint    String   @default("chat")
+  count       Int      @default(1)
+  windowStart DateTime
+  expiresAt   DateTime
+
+  @@unique([ip, endpoint])
+  @@index([expiresAt])
+  @@map("rate_limits")
+}

@@ -11,8 +11,9 @@ import {
   getCacheStatus,
 } from "@/lib/cache";
 import { YearSummary } from "@/lib/types";
+import { withApiLogging } from "@/lib/api-logger";
 
-export async function GET() {
+async function handleGet() {
   const steps: { step: string; status: "ok" | "skipped" | "error"; detail?: string; ms?: number }[] = [];
 
   try {
@@ -130,3 +131,5 @@ export async function GET() {
     );
   }
 }
+
+export const GET = withApiLogging("/api/sync", handleGet);

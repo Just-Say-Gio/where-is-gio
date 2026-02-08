@@ -4,36 +4,10 @@ import { getCachedSegments, getCachedYearSummary } from "@/lib/cache";
 import { getCurrentSegment, getNextSegment } from "@/lib/calendar-utils";
 import { getCachedFlightAnalytics } from "@/lib/flights-cache";
 import { getRiceRunsMap } from "@/lib/rice-runs";
-import { TravelSegment, FlightAnalytics } from "@/lib/types";
+import { TravelSegment } from "@/lib/types";
+import { checkRateLimit, logChatMessage, getClientIp } from "@/lib/analytics";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// --- Rate limiting (in-memory, resets on deploy) ---
-const DAILY_LIMIT = 10;
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return "unknown";
-}
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now >= entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 24 * 60 * 60 * 1000 });
-    return { allowed: true, remaining: DAILY_LIMIT - 1 };
-  }
-
-  if (entry.count >= DAILY_LIMIT) {
-    return { allowed: false, remaining: 0 };
-  }
-
-  entry.count++;
-  return { allowed: true, remaining: DAILY_LIMIT - entry.count };
-}
 
 // --- System prompt ---
 function buildSystemPrompt(segments: TravelSegment[]): string {
@@ -91,7 +65,6 @@ function buildSystemPrompt(segments: TravelSegment[]): string {
       `Cabin class: ${Object.entries(flightAnalytics.flightsByClass).map(([c, n]) => `${c}: ${n}`).join(", ")}`,
     ].join("\n");
 
-    // Add visited countries total if available
     if (flightAnalytics.visitedCountries) {
       flightContext += `\nTotal countries ever visited: ${flightAnalytics.visitedCountries.totalVisited} out of 195`;
     }
@@ -152,8 +125,8 @@ ${flightContext}
 
 // --- POST handler ---
 export async function POST(req: NextRequest) {
-  const ip = getClientIp(req);
-  const { allowed, remaining } = checkRateLimit(ip);
+  const ip = getClientIp(req.headers);
+  const { allowed, remaining } = await checkRateLimit(ip, "chat");
 
   if (!allowed) {
     return new Response(
@@ -171,7 +144,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { message: string; history?: { role: string; content: string }[] };
+  let body: {
+    message: string;
+    sessionId?: string;
+    history?: { role: string; content: string }[];
+  };
   try {
     body = await req.json();
   } catch {
@@ -187,6 +164,18 @@ export async function POST(req: NextRequest) {
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
+
+  const sessionId = body.sessionId || ip;
+  const ua = req.headers.get("user-agent") || undefined;
+
+  // Log user message (fire-and-forget)
+  logChatMessage({
+    sessionId,
+    role: "user",
+    content: body.message,
+    ip,
+    userAgent: ua,
+  });
 
   // Build system prompt from cached travel data
   const segments = getCachedSegments() ?? [];
@@ -213,6 +202,7 @@ export async function POST(req: NextRequest) {
   messages.push({ role: "user", content: body.message });
 
   try {
+    const streamStart = Date.now();
     const stream = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages,
@@ -221,18 +211,30 @@ export async function POST(req: NextRequest) {
       stream: true,
     });
 
-    // Convert Groq stream to ReadableStream
+    // Convert Groq stream to ReadableStream, collecting full response for logging
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
+        let fullResponse = "";
         try {
           for await (const chunk of stream) {
             const text = chunk.choices[0]?.delta?.content;
             if (text) {
+              fullResponse += text;
               controller.enqueue(encoder.encode(text));
             }
           }
           controller.close();
+
+          // Log assistant response (fire-and-forget)
+          logChatMessage({
+            sessionId,
+            role: "assistant",
+            content: fullResponse,
+            ip,
+            durationMs: Date.now() - streamStart,
+            model: "llama-3.3-70b-versatile",
+          });
         } catch (err) {
           controller.error(err);
         }

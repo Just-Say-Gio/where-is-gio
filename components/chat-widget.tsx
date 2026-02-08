@@ -97,6 +97,10 @@ export function ChatWidget({ isOpen, onClose, onScrollToToday }: ChatWidgetProps
   );
 }
 
+function generateSessionId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 function ChatContent({
   onClose,
   onScrollToToday,
@@ -108,6 +112,7 @@ function ChatContent({
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [remaining, setRemaining] = useState(DAILY_LIMIT);
+  const [sessionId] = useState(generateSessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -152,7 +157,7 @@ function ChatContent({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({ message: text, history, sessionId }),
       });
 
       // Update remaining from header

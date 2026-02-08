@@ -2,10 +2,11 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { withApiLogging } from "@/lib/api-logger";
 
 const STATS_PATH = join(process.cwd(), "data", "maps-stats.json");
 
-export async function POST() {
+async function handlePost() {
   if (!existsSync(STATS_PATH)) {
     return NextResponse.json({ error: "No maps stats found" }, { status: 404 });
   }
@@ -67,3 +68,5 @@ Bad examples:
 
   return NextResponse.json({ insights, count: insights.length });
 }
+
+export const POST = withApiLogging("/api/maps-stats/insights", handlePost);

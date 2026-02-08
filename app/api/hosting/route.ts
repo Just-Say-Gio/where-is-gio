@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getHostingData, setHostingOverrides, removeHostingOverrides } from "@/lib/hosting";
+import { withApiLogging } from "@/lib/api-logger";
 
 export const dynamic = "force-dynamic";
 
-// GET — return all overrides
-export async function GET() {
+async function handleGet() {
   return NextResponse.json(getHostingData());
 }
 
-// POST — add/update overrides for given dates
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const body = await request.json();
     const { dates, reason } = body as { dates: string[]; reason: string };
@@ -28,8 +27,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE — remove overrides for given dates
-export async function DELETE(request: NextRequest) {
+async function handleDelete(request: NextRequest) {
   try {
     const body = await request.json();
     const { dates } = body as { dates: string[] };
@@ -44,3 +42,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 }
+
+export const GET = withApiLogging("/api/hosting", handleGet);
+export const POST = withApiLogging("/api/hosting", handlePost);
+export const DELETE = withApiLogging("/api/hosting", handleDelete);
