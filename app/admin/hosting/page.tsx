@@ -8,6 +8,12 @@ interface HostingOverride {
   reason: string;
 }
 
+interface RiceRunEntry {
+  note?: string;
+}
+
+type AdminMode = "hosting" | "rice-runs";
+
 const YEAR = 2026;
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_HEADERS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -20,19 +26,22 @@ function getStartDayOfWeek(year: number, month: number): number {
 export default function HostingAdminPage() {
   const [thailandDates, setThailandDates] = useState<Set<string>>(new Set());
   const [overrides, setOverrides] = useState<Record<string, HostingOverride>>({});
+  const [riceRuns, setRiceRuns] = useState<Record<string, RiceRunEntry>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
+  const [riceRunNote, setRiceRunNote] = useState("Rice delivery to Bilay House & Samson House");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "ok" | "error" } | null>(null);
+  const [mode, setMode] = useState<AdminMode>("hosting");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch Thailand dates from cache status + segments
-      const [segRes, hostRes] = await Promise.all([
+      const [segRes, hostRes, riceRes] = await Promise.all([
         fetch("/api/segments"),
         fetch("/api/hosting"),
+        fetch("/api/rice-runs"),
       ]);
       if (segRes.ok) {
         const segData = await segRes.json();
@@ -52,6 +61,10 @@ export default function HostingAdminPage() {
       if (hostRes.ok) {
         const hostData = await hostRes.json();
         setOverrides(hostData.overrides || {});
+      }
+      if (riceRes.ok) {
+        const riceData = await riceRes.json();
+        setRiceRuns(riceData.riceRuns || {});
       }
     } catch {
       setMessage({ text: "Failed to load data", type: "error" });
@@ -73,6 +86,13 @@ export default function HostingAdminPage() {
     });
   };
 
+  const switchMode = (newMode: AdminMode) => {
+    setMode(newMode);
+    setSelected(new Set());
+    setMessage(null);
+  };
+
+  // --- Hosting actions ---
   const markUnavailable = async () => {
     if (selected.size === 0) return;
     if (!reason.trim()) {
@@ -118,12 +138,61 @@ export default function HostingAdminPage() {
     }
   };
 
+  // --- Rice run actions ---
+  const scheduleRiceRuns = async () => {
+    if (selected.size === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/rice-runs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dates: Array.from(selected), note: riceRunNote.trim() || undefined }),
+      });
+      if (res.ok) {
+        setMessage({ text: `Scheduled ${selected.size} rice run${selected.size > 1 ? "s" : ""}`, type: "ok" });
+        setSelected(new Set());
+        await fetchData();
+      } else {
+        setMessage({ text: "Failed to save", type: "error" });
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeRiceRuns = async () => {
+    if (selected.size === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/rice-runs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dates: Array.from(selected) }),
+      });
+      if (res.ok) {
+        setMessage({ text: `Removed ${selected.size} rice run${selected.size > 1 ? "s" : ""}`, type: "ok" });
+        setSelected(new Set());
+        await fetchData();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Group overrides by reason for summary
   const overridesByReason: Record<string, string[]> = {};
   for (const [date, ov] of Object.entries(overrides)) {
     const r = ov.reason || "No reason";
     if (!overridesByReason[r]) overridesByReason[r] = [];
     overridesByReason[r].push(date);
+  }
+
+  // Group rice runs by note for summary
+  const riceRunsByNote: Record<string, string[]> = {};
+  for (const [date, entry] of Object.entries(riceRuns)) {
+    const n = entry.note || "Rice run";
+    if (!riceRunsByNote[n]) riceRunsByNote[n] = [];
+    riceRunsByNote[n].push(date);
   }
 
   if (loading) {
@@ -141,46 +210,109 @@ export default function HostingAdminPage() {
     <div className="min-h-screen bg-background p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Hosting Availability Manager</h1>
+          <h1 className="text-2xl font-bold">Hosting & Rice Runs Manager</h1>
           <p className="text-sm text-muted-foreground">
-            Click Thailand dates to select them, then mark as unavailable with a reason.
+            {mode === "hosting"
+              ? "Click Thailand dates to select them, then mark as unavailable with a reason."
+              : "Click any date to select, then schedule a rice run."}
           </p>
+        </div>
+
+        {/* Mode toggle */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-muted/60 border border-border/50">
+            <button
+              onClick={() => switchMode("hosting")}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                mode === "hosting"
+                  ? "bg-background shadow-sm border border-border/30 text-foreground"
+                  : "text-muted-foreground/60 hover:text-muted-foreground"
+              }`}
+            >
+              🏠 Hosting
+            </button>
+            <button
+              onClick={() => switchMode("rice-runs")}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                mode === "rice-runs"
+                  ? "bg-background shadow-sm border border-border/30 text-foreground"
+                  : "text-muted-foreground/60 hover:text-muted-foreground"
+              }`}
+            >
+              🍚 Rice Runs
+            </button>
+          </div>
         </div>
 
         {/* Actions bar */}
         <div className="bg-card border rounded-xl p-4 space-y-3">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[200px]">
-              <label className="text-xs text-muted-foreground mb-1 block">Reason (private — only you see this)</label>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g. Hosting John & Sarah, Personal time..."
-                className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
-              />
+          {mode === "hosting" ? (
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-xs text-muted-foreground mb-1 block">Reason (private — only you see this)</label>
+                <input
+                  type="text"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="e.g. Hosting John & Sarah, Personal time..."
+                  className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+                />
+              </div>
+              <button
+                onClick={markUnavailable}
+                disabled={saving || selected.size === 0}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Mark unavailable ({selected.size})
+              </button>
+              <button
+                onClick={clearOverrides}
+                disabled={saving || selected.size === 0}
+                className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Clear overrides ({selected.size})
+              </button>
+              <button
+                onClick={() => setSelected(new Set())}
+                className="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-accent cursor-pointer"
+              >
+                Deselect all
+              </button>
             </div>
-            <button
-              onClick={markUnavailable}
-              disabled={saving || selected.size === 0}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Mark unavailable ({selected.size})
-            </button>
-            <button
-              onClick={clearOverrides}
-              disabled={saving || selected.size === 0}
-              className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Clear overrides ({selected.size})
-            </button>
-            <button
-              onClick={() => setSelected(new Set())}
-              className="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-accent cursor-pointer"
-            >
-              Deselect all
-            </button>
-          </div>
+          ) : (
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-xs text-muted-foreground mb-1 block">Note (optional)</label>
+                <input
+                  type="text"
+                  value={riceRunNote}
+                  onChange={(e) => setRiceRunNote(e.target.value)}
+                  placeholder="e.g. Rice delivery to Bilay House & Samson House"
+                  className="w-full px-3 py-2 rounded-lg border bg-background text-sm"
+                />
+              </div>
+              <button
+                onClick={scheduleRiceRuns}
+                disabled={saving || selected.size === 0}
+                className="px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                🍚 Schedule rice run ({selected.size})
+              </button>
+              <button
+                onClick={removeRiceRuns}
+                disabled={saving || selected.size === 0}
+                className="px-4 py-2 rounded-lg bg-muted text-foreground text-sm font-medium hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Remove rice runs ({selected.size})
+              </button>
+              <button
+                onClick={() => setSelected(new Set())}
+                className="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-accent cursor-pointer"
+              >
+                Deselect all
+              </button>
+            </div>
+          )}
 
           {message && (
             <p className={`text-sm ${message.type === "ok" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
@@ -213,11 +345,12 @@ export default function HostingAdminPage() {
               rows.push(cells.slice(i, i + 7));
             }
 
-            // Check if this month has any TH dates
+            // In hosting mode: dim months without TH dates; in rice run mode: show all
             const hasTH = days.some((d) => thailandDates.has(d));
+            const dimMonth = mode === "hosting" && !hasTH;
 
             return (
-              <div key={monthIdx} className={!hasTH ? "opacity-30" : ""}>
+              <div key={monthIdx} className={dimMonth ? "opacity-30" : ""}>
                 <h3 className="text-xs font-semibold text-muted-foreground mb-1 tracking-wide uppercase">
                   {MONTH_NAMES[monthIdx]}
                 </h3>
@@ -243,16 +376,33 @@ export default function HostingAdminPage() {
                       const dayNum = parseInt(dateStr.split("-")[2]);
                       const inTH = thailandDates.has(dateStr);
                       const isOverridden = dateStr in overrides;
+                      const isRiceRun = dateStr in riceRuns;
                       const isSelected = selected.has(dateStr);
 
-                      let cls = "w-[26px] h-[26px] rounded-[3px] flex items-center justify-center text-[9px] font-medium relative cursor-pointer transition-all ";
+                      // In hosting mode: only TH dates are clickable
+                      // In rice run mode: all dates are clickable
+                      const clickable = mode === "hosting" ? inTH : true;
 
-                      if (!inTH) {
-                        cls += "bg-muted/20 text-muted-foreground/20 cursor-default ";
-                      } else if (isOverridden) {
-                        cls += "bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40 ";
+                      let cls = "w-[26px] h-[26px] rounded-[3px] flex items-center justify-center text-[9px] font-medium relative transition-all ";
+                      cls += clickable ? "cursor-pointer " : "cursor-default ";
+
+                      if (mode === "hosting") {
+                        if (!inTH) {
+                          cls += "bg-muted/20 text-muted-foreground/20 ";
+                        } else if (isOverridden) {
+                          cls += "bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40 ";
+                        } else {
+                          cls += "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 ";
+                        }
                       } else {
-                        cls += "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 ";
+                        // Rice run mode
+                        if (isRiceRun) {
+                          cls += "bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 ";
+                        } else if (inTH) {
+                          cls += "bg-emerald-500/10 text-foreground/60 border border-border/30 ";
+                        } else {
+                          cls += "bg-muted/30 text-muted-foreground/40 border border-border/20 ";
+                        }
                       }
 
                       if (isSelected) {
@@ -263,20 +413,27 @@ export default function HostingAdminPage() {
                         <div
                           key={dateStr}
                           className={cls}
-                          onClick={() => inTH && toggleDate(dateStr)}
+                          onClick={() => clickable && toggleDate(dateStr)}
                           title={
-                            isOverridden
-                              ? `Unavailable: ${overrides[dateStr].reason}`
-                              : inTH
-                                ? "Available — click to select"
-                                : "Not in Thailand"
+                            mode === "hosting"
+                              ? isOverridden
+                                ? `Unavailable: ${overrides[dateStr].reason}`
+                                : inTH
+                                  ? "Available — click to select"
+                                  : "Not in Thailand"
+                              : isRiceRun
+                                ? `🍚 ${riceRuns[dateStr].note || "Rice run"}`
+                                : "Click to select for rice run"
                           }
                         >
                           {dayNum}
-                          {isOverridden && (
+                          {mode === "hosting" && isOverridden && (
                             <span className="absolute inset-0 flex items-center justify-center text-red-500/50 text-[12px] font-bold">
                               ✕
                             </span>
+                          )}
+                          {isRiceRun && (
+                            <span className="absolute top-0 right-0 text-[7px] leading-none">🍚</span>
                           )}
                         </div>
                       );
@@ -291,7 +448,7 @@ export default function HostingAdminPage() {
         {/* Current overrides summary */}
         {Object.keys(overridesByReason).length > 0 && (
           <div className="bg-card border rounded-xl p-4 space-y-3">
-            <h2 className="text-sm font-semibold">Current overrides</h2>
+            <h2 className="text-sm font-semibold">Current hosting overrides</h2>
             {Object.entries(overridesByReason)
               .sort(([, a], [, b]) => a[0].localeCompare(b[0]))
               .map(([reasonText, dates]) => (
@@ -303,6 +460,27 @@ export default function HostingAdminPage() {
                       return `${parts[2]}/${parts[1]}`;
                     }).join(", ")}
                     {" "}({dates.length} day{dates.length > 1 ? "s" : ""})
+                  </p>
+                </div>
+              ))}
+          </div>
+        )}
+
+        {/* Rice runs summary */}
+        {Object.keys(riceRunsByNote).length > 0 && (
+          <div className="bg-card border rounded-xl p-4 space-y-3">
+            <h2 className="text-sm font-semibold">🍚 Scheduled Rice Runs</h2>
+            {Object.entries(riceRunsByNote)
+              .sort(([, a], [, b]) => a[0].localeCompare(b[0]))
+              .map(([noteText, dates]) => (
+                <div key={noteText} className="text-sm space-y-1">
+                  <p className="font-medium text-amber-700 dark:text-amber-400">{noteText}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {dates.sort().map((d) => {
+                      const parts = d.split("-");
+                      return `${parts[2]}/${parts[1]}`;
+                    }).join(", ")}
+                    {" "}({dates.length} run{dates.length > 1 ? "s" : ""})
                   </p>
                 </div>
               ))}

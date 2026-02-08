@@ -1,6 +1,8 @@
 import { getCachedSegments } from "@/lib/cache";
 import { getOverridesMap } from "@/lib/hosting";
+import { getRiceRunsMap } from "@/lib/rice-runs";
 import { WhenCalendar } from "@/components/when-calendar";
+import { CharityRiceBanner } from "@/components/charity-rice-banner";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,8 @@ const YEAR = 2026;
 export default function WhenPage() {
   const segments = getCachedSegments() ?? [];
   const overrides = getOverridesMap();
+  const riceRunsMap = getRiceRunsMap();
+  const riceRunDates = Object.keys(riceRunsMap);
 
   // Find all Thailand date ranges from segments
   const thailandDates = new Set<string>();
@@ -63,11 +67,18 @@ export default function WhenPage() {
               year={YEAR}
               thailandDates={Array.from(thailandDates)}
               overrides={Object.keys(overrides)}
+              riceRunDates={riceRunDates}
             />
           </>
         )}
 
-        <div className="mt-12 text-center">
+        {riceRunDates.length > 0 && (
+          <div className="mt-8">
+            <CharityRiceBanner compact />
+          </div>
+        )}
+
+        <div className="mt-8 text-center">
           <a
             href="/"
             className="text-sm text-muted-foreground hover:text-foreground underline"

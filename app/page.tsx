@@ -4,6 +4,7 @@ import { getCachedSegments, getCachedMonthInsights, getCachedYearSummary } from 
 import { getCachedFlightAnalytics } from "@/lib/flights-cache";
 import { loadVisitedCountries } from "@/lib/flights-parser";
 import { generateYearDays, assignSegmentsToDays } from "@/lib/calendar-utils";
+import { getRiceRunsMap } from "@/lib/rice-runs";
 import { CalendarWrapper } from "@/components/calendar-wrapper";
 import type { MapsStatsData, HeatmapData } from "@/lib/types";
 
@@ -41,6 +42,8 @@ export default async function Home() {
   const yearSummary = getCachedYearSummary();
   const mapsStats = loadMapsStats();
   const heatmapData = loadHeatmapData();
+  const riceRunsMap = getRiceRunsMap();
+  const riceRunDates = Object.keys(riceRunsMap);
 
   return (
     <main className="min-h-screen bg-background">
@@ -65,6 +68,7 @@ export default async function Home() {
         yearSummary={yearSummary}
         mapsStats={mapsStats}
         heatmapData={heatmapData}
+        riceRunDates={riceRunDates}
       />
     </main>
   );

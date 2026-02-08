@@ -22,6 +22,7 @@ interface DayCellProps {
   isToday: boolean;
   highlightCountry: string | null;
   expanded?: boolean;
+  riceRunDates?: Set<string>;
 }
 
 function getTripDuration(startDate: string, endDate: string): number {
@@ -55,11 +56,12 @@ function isDatePast(dateStr: string): boolean {
 
 // forwardRef so Radix asChild can attach refs directly — no wrapper div needed
 const DayCellVisual = forwardRef<HTMLDivElement, DayCellProps & React.HTMLAttributes<HTMLDivElement>>(
-  function DayCellVisual({ day, isToday, highlightCountry, expanded = false, className, ...rest }, ref) {
+  function DayCellVisual({ day, isToday, highlightCountry, expanded = false, riceRunDates, className, ...rest }, ref) {
     const segment = day.segment;
     const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
     const bgColor = countryInfo ? countryInfo.color : UNKNOWN_COLOR;
     const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
+    const isRiceRun = riceRunDates?.has(day.date) ?? false;
 
     const isDimmed =
       highlightCountry !== null &&
@@ -119,12 +121,17 @@ const DayCellVisual = forwardRef<HTMLDivElement, DayCellProps & React.HTMLAttrib
             {flag}
           </span>
         )}
+        {isRiceRun && (
+          <span className={`absolute ${expanded ? "top-[1px] right-[1px] text-[10px]" : "top-0 right-0 text-[7px]"} sm:top-[1px] sm:right-[1px] sm:text-[8px] lg:text-[10px] leading-none z-20 drop-shadow-sm`}>
+            🍚
+          </span>
+        )}
       </div>
     );
   }
 );
 
-function TooltipDetail({ day }: { day: CalendarDay }) {
+function TooltipDetail({ day, isRiceRun }: { day: CalendarDay; isRiceRun?: boolean }) {
   const segment = day.segment;
   const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
   const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
@@ -169,12 +176,26 @@ function TooltipDetail({ day }: { day: CalendarDay }) {
             {segment.notes}
           </p>
         )}
+        {isRiceRun && (
+          <div className="flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+            <span className="text-[10px]">🍚</span>
+            <a
+              href="https://charityriceruns.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-amber-700 dark:text-amber-400 font-medium hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Charity Rice Run
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function DrawerDetail({ day }: { day: CalendarDay }) {
+function DrawerDetail({ day, isRiceRun }: { day: CalendarDay; isRiceRun?: boolean }) {
   const segment = day.segment;
   const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
   const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
@@ -231,13 +252,28 @@ function DrawerDetail({ day }: { day: CalendarDay }) {
           {segment.notes}
         </p>
       )}
+      {isRiceRun && (
+        <a
+          href="https://charityriceruns.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+        >
+          <span className="text-lg">🍚</span>
+          <div>
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Charity Rice Run</p>
+            <p className="text-[10px] text-muted-foreground">Feeding 80+ children on the Thai-Myanmar border</p>
+          </div>
+        </a>
+      )}
     </div>
   );
 }
 
 export function DayCell(props: DayCellProps) {
   const isMobile = useIsMobile();
-  const { day } = props;
+  const { day, riceRunDates } = props;
+  const isRiceRun = riceRunDates?.has(day.date) ?? false;
 
   if (isMobile) {
     return (
@@ -255,7 +291,7 @@ export function DayCell(props: DayCellProps) {
               })}
             </DrawerTitle>
           </DrawerHeader>
-          <DrawerDetail day={day} />
+          <DrawerDetail day={day} isRiceRun={isRiceRun} />
         </DrawerContent>
       </Drawer>
     );
@@ -267,7 +303,7 @@ export function DayCell(props: DayCellProps) {
         <DayCellVisual {...props} />
       </TooltipTrigger>
       <TooltipContent side="top" className="p-0 max-w-[260px]">
-        <TooltipDetail day={day} />
+        <TooltipDetail day={day} isRiceRun={isRiceRun} />
       </TooltipContent>
     </Tooltip>
   );

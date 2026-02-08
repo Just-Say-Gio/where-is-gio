@@ -38,6 +38,14 @@ export interface HostingData {
   overrides: Record<string, HostingOverride>; // key = "2026-02-15"
 }
 
+export interface RiceRunEntry {
+  note?: string;
+}
+
+export interface RiceRunData {
+  riceRuns: Record<string, RiceRunEntry>; // key = "2026-02-07"
+}
+
 // Flight analytics types
 
 export interface FlightRecord {

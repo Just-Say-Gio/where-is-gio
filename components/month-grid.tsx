@@ -18,6 +18,7 @@ interface MonthGridProps {
   insight: string | null;
   flightCount: number;
   expanded?: boolean;
+  riceRunDates?: Set<string>;
 }
 
 export function MonthGrid({
@@ -28,6 +29,7 @@ export function MonthGrid({
   highlightCountry,
   insight,
   expanded = false,
+  riceRunDates,
 }: MonthGridProps) {
   const startDay = getStartDayOfWeek(year, monthIndex);
 
@@ -136,6 +138,7 @@ export function MonthGrid({
                   isToday={cell.date === today}
                   highlightCountry={highlightCountry}
                   expanded={expanded}
+                  riceRunDates={riceRunDates}
                 />
               ) : (
                 <div

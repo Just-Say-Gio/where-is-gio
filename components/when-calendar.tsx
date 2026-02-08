@@ -18,6 +18,7 @@ interface WhenCalendarProps {
   year: number;
   thailandDates: string[];
   overrides: string[]; // dates that are unavailable
+  riceRunDates?: string[];
 }
 
 /** Group sorted date strings into consecutive ranges */
@@ -84,9 +85,10 @@ function buildWhatsAppUrl(dates: string[], year: number): string {
   return `https://api.whatsapp.com/send/?phone=${WA_PHONE}&text=${encodeURIComponent(text)}&type=phone_number&app_absent=0`;
 }
 
-export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarProps) {
+export function WhenCalendar({ year, thailandDates, overrides, riceRunDates }: WhenCalendarProps) {
   const thSet = new Set(thailandDates);
   const overSet = new Set(overrides);
+  const riceSet = useMemo(() => new Set(riceRunDates ?? []), [riceRunDates]);
 
   const [layout, setLayout] = useState<WhenLayout>("2col");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -171,6 +173,7 @@ export function WhenCalendar({ year, thailandDates, overrides }: WhenCalendarPro
               monthIndex={monthIdx}
               thailandSet={thSet}
               overrideSet={overSet}
+              riceRunSet={riceSet}
               selectedSet={selected}
               availableSet={availableSet}
               onToggleDate={toggleDate}
@@ -285,6 +288,7 @@ function WhenMonth({
   monthIndex,
   thailandSet,
   overrideSet,
+  riceRunSet,
   selectedSet,
   availableSet,
   onToggleDate,
@@ -294,6 +298,7 @@ function WhenMonth({
   monthIndex: number;
   thailandSet: Set<string>;
   overrideSet: Set<string>;
+  riceRunSet: Set<string>;
   selectedSet: Set<string>;
   availableSet: Set<string>;
   onToggleDate: (dateStr: string) => void;
@@ -399,6 +404,9 @@ function WhenMonth({
                     <span className={`absolute inset-0 flex items-center justify-center text-red-500/60 ${crossSize} sm:text-[14px] font-bold`}>
                       ✕
                     </span>
+                  )}
+                  {riceRunSet.has(dateStr) && (
+                    <span className={`absolute top-0 right-0 ${expanded ? "text-[8px]" : "text-[6px]"} sm:text-[7px] leading-none`}>🍚</span>
                   )}
                 </div>
               );

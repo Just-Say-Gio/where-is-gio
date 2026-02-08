@@ -13,6 +13,7 @@ interface YearCalendarProps {
   monthInsights: string[] | null;
   monthFlightCounts: number[] | null;
   mobileLayout?: "2col" | "1col";
+  riceRunDates?: Set<string>;
 }
 
 export function YearCalendar({
@@ -23,6 +24,7 @@ export function YearCalendar({
   monthInsights,
   monthFlightCounts,
   mobileLayout = "2col",
+  riceRunDates,
 }: YearCalendarProps) {
   const isExpanded = mobileLayout === "1col";
 
@@ -44,6 +46,7 @@ export function YearCalendar({
               insight={monthInsights?.[i] ?? null}
               flightCount={monthFlightCounts?.[i] ?? 0}
               expanded={isExpanded}
+              riceRunDates={riceRunDates}
             />
           </BlurFade>
         ))}

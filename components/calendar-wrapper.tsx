@@ -18,6 +18,7 @@ import { GioLocator } from "./gio-locator";
 import { TextReveal } from "./ui/text-reveal";
 import { MapsStats } from "./maps-stats";
 import { PhotoHeatmap } from "./photo-heatmap";
+import { CharityRiceBanner } from "./charity-rice-banner";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -29,6 +30,7 @@ interface CalendarWrapperProps {
   yearSummary: YearSummary | null;
   mapsStats: MapsStatsData | null;
   heatmapData: HeatmapData | null;
+  riceRunDates?: string[];
 }
 
 export function CalendarWrapper({
@@ -41,6 +43,7 @@ export function CalendarWrapper({
   yearSummary,
   mapsStats,
   heatmapData,
+  riceRunDates,
 }: CalendarWrapperProps) {
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [today, setToday] = useState<string>("");
@@ -95,6 +98,8 @@ export function CalendarWrapper({
     return counts;
   }, [flightAnalytics, year]);
 
+  const riceRunSet = useMemo(() => new Set(riceRunDates ?? []), [riceRunDates]);
+
   const currentSegment = getCurrentSegment(segments);
   const next = getNextSegment(segments);
 
@@ -130,6 +135,7 @@ export function CalendarWrapper({
             monthInsights={monthInsights}
             monthFlightCounts={monthFlightCounts}
             mobileLayout={calendarLayout}
+            riceRunDates={riceRunSet}
           />
           <BlurFade delay={0.3} inView>
             <div className="mt-6 pt-5 border-t border-border/50">
@@ -139,6 +145,11 @@ export function CalendarWrapper({
                 highlightCountry={highlightCountry}
                 onCountryClick={setHighlightCountry}
               />
+              {riceRunDates && riceRunDates.length > 0 && (
+                <div className="mt-4">
+                  <CharityRiceBanner riceRunDates={riceRunDates} />
+                </div>
+              )}
             </div>
           </BlurFade>
         </div>
