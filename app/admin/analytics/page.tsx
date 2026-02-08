@@ -23,7 +23,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
 } from "recharts";
 
 // ─── Types ──────────────────────────────────────────────
@@ -235,6 +234,13 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
     count: { label: "Hits", color: "hsl(var(--chart-1))" },
   };
 
+  const deviceConfig: ChartConfig = Object.fromEntries(
+    data.deviceBreakdown.map((d, i) => [
+      d.device,
+      { label: d.device, color: DEVICE_COLORS[i % DEVICE_COLORS.length] },
+    ])
+  );
+
   const totalDevices = data.deviceBreakdown.reduce((s, d) => s + d.count, 0);
 
   return (
@@ -300,7 +306,7 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
           </p>
           {totalDevices > 0 ? (
             <div className="h-[200px] relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ChartContainer config={deviceConfig} className="h-full w-full">
                 <PieChart>
                   <Pie
                     data={data.deviceBreakdown}
@@ -319,7 +325,7 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
                   <div className="text-2xl font-bold">{totalDevices}</div>
