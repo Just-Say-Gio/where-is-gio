@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,39 @@ function getRangeDate(range: Range): Date | null {
     case "all":
       return null;
   }
+}
+
+function getTruncUnit(range: Range): string {
+  switch (range) {
+    case "24h": return "hour";
+    case "7d":
+    case "30d": return "day";
+    case "all": return "week";
+  }
+}
+
+async function getPageViewTrend(range: Range, since: Date | null) {
+  const unit = getTruncUnit(range);
+  const whereClause = since
+    ? Prisma.sql`WHERE "createdAt" >= ${since}`
+    : Prisma.empty;
+
+  const rows = await prisma.$queryRaw<Array<{ bucket: Date; views: bigint; visitors: bigint }>>`
+    SELECT
+      date_trunc(${unit}, "createdAt") AS bucket,
+      COUNT(*)::bigint AS views,
+      COUNT(DISTINCT ip)::bigint AS visitors
+    FROM page_views
+    ${whereClause}
+    GROUP BY bucket
+    ORDER BY bucket ASC
+  `;
+
+  return rows.map((r) => ({
+    bucket: r.bucket.toISOString(),
+    views: Number(r.views),
+    visitors: Number(r.visitors),
+  }));
 }
 
 export async function GET(req: NextRequest) {
@@ -37,6 +71,7 @@ export async function GET(req: NextRequest) {
       deviceBreakdown,
       countryBreakdown,
       recentPageViews,
+      pageViewTrend,
     ] = await Promise.all([
       prisma.pageView.count({ where }),
       prisma.pageView.groupBy({ by: ["ip"], where, _count: true }).then((r) => r.length),
@@ -80,6 +115,7 @@ export async function GET(req: NextRequest) {
         take: 30,
         select: { path: true, ip: true, device: true, browser: true, country: true, createdAt: true },
       }),
+      getPageViewTrend(range, since),
     ]);
 
     return NextResponse.json({
@@ -95,6 +131,7 @@ export async function GET(req: NextRequest) {
       deviceBreakdown: deviceBreakdown.map((d) => ({ device: d.device ?? "unknown", count: d._count })),
       countryBreakdown: countryBreakdown.map((c) => ({ country: c.country ?? "unknown", count: c._count })),
       recentPageViews,
+      pageViewTrend,
     });
   } catch (err) {
     console.error("[admin/analytics] Error:", err);

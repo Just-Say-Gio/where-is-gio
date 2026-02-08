@@ -256,12 +256,20 @@ export default function AdminPage() {
           </div>
         )}
 
-        <a
-          href="/admin/hosting"
-          className="block w-full py-3 px-4 rounded-xl border text-center font-semibold hover:bg-accent transition-colors"
-        >
-          🏠 Manage Hosting Availability
-        </a>
+        <div className="grid grid-cols-1 gap-3">
+          <a
+            href="/admin/analytics"
+            className="block w-full py-3 px-4 rounded-xl border text-center font-semibold hover:bg-accent transition-colors"
+          >
+            📊 Analytics Dashboard
+          </a>
+          <a
+            href="/admin/hosting"
+            className="block w-full py-3 px-4 rounded-xl border text-center font-semibold hover:bg-accent transition-colors"
+          >
+            🏠 Manage Hosting Availability
+          </a>
+        </div>
 
         <div className="flex justify-center gap-4">
           <a
