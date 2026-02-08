@@ -50,6 +50,18 @@ export function CalendarWrapper({
   const [today, setToday] = useState<string>("");
   const [calendarLayout, setCalendarLayout] = useState<"2col" | "1col">("2col");
   const [chatOpen, setChatOpen] = useState(false);
+  const [showChatHint, setShowChatHint] = useState(false);
+
+  // Show chat hint bubble after delay (once per session)
+  useEffect(() => {
+    if (sessionStorage.getItem("chat-hint-shown")) return;
+    const show = setTimeout(() => {
+      setShowChatHint(true);
+      sessionStorage.setItem("chat-hint-shown", "1");
+    }, 4000);
+    const hide = setTimeout(() => setShowChatHint(false), 12000);
+    return () => { clearTimeout(show); clearTimeout(hide); };
+  }, []);
 
   // Restore calendar layout preference from localStorage
   useEffect(() => {
@@ -286,9 +298,20 @@ export function CalendarWrapper({
         </BlurFade>
       </div>
 
+      {/* Chat hint bubble */}
+      {showChatHint && !chatOpen && (
+        <button
+          onClick={() => { setShowChatHint(false); setChatOpen(true); }}
+          className="fixed bottom-[76px] right-6 z-50 px-3 py-2 rounded-lg bg-foreground text-background text-xs font-medium shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300 cursor-pointer hover:opacity-90 transition-opacity"
+        >
+          Ask the AI about Gio&apos;s travels
+          <span className="absolute -bottom-1 right-5 w-2 h-2 bg-foreground rotate-45" />
+        </button>
+      )}
+
       {/* Floating chat button */}
       <button
-        onClick={() => setChatOpen((o) => !o)}
+        onClick={() => { setChatOpen((o) => !o); setShowChatHint(false); }}
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-all duration-150 opacity-80 hover:opacity-100"
         aria-label={chatOpen ? "Close chat" : "Open chat"}
       >
