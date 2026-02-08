@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 import { CalendarDay } from "@/lib/types";
-import { getCountryInfo, UNKNOWN_COLOR } from "@/lib/countries";
+import { getCountryInfo, resolveFlag, UNKNOWN_COLOR } from "@/lib/countries";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
   Tooltip,
@@ -59,6 +59,7 @@ const DayCellVisual = forwardRef<HTMLDivElement, DayCellProps & React.HTMLAttrib
     const segment = day.segment;
     const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
     const bgColor = countryInfo ? countryInfo.color : UNKNOWN_COLOR;
+    const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
 
     const isDimmed =
       highlightCountry !== null &&
@@ -103,15 +104,19 @@ const DayCellVisual = forwardRef<HTMLDivElement, DayCellProps & React.HTMLAttrib
             }}
           />
         )}
-        {isTransit && countryInfo && (
+        {isTransit && countryInfo && flag && (
           <div
-            className={`absolute ${expanded ? "inset-[5px]" : "inset-[3px]"} sm:inset-[4px] lg:inset-[5px] rounded-full`}
+            className={`absolute ${expanded ? "inset-[5px]" : "inset-[3px]"} sm:inset-[4px] lg:inset-[5px] rounded-full flex items-center justify-center`}
             style={{ backgroundColor: bgColor }}
-          />
+          >
+            <span className={`${expanded ? "text-[12px]" : "text-[8px]"} sm:text-[10px] lg:text-[12px] leading-none select-none`}>
+              {flag}
+            </span>
+          </div>
         )}
-        {countryInfo && !isTransit && (
+        {countryInfo && !isTransit && flag && (
           <span className={`relative z-10 ${expanded ? "text-[16px]" : "text-[10px]"} sm:text-[13px] lg:text-[16px] leading-none select-none`}>
-            {countryInfo.flag}
+            {flag}
           </span>
         )}
       </div>
@@ -122,6 +127,7 @@ const DayCellVisual = forwardRef<HTMLDivElement, DayCellProps & React.HTMLAttrib
 function TooltipDetail({ day }: { day: CalendarDay }) {
   const segment = day.segment;
   const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
+  const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
   const isPast = isDatePast(day.date);
 
   if (!segment || !countryInfo) {
@@ -145,7 +151,7 @@ function TooltipDetail({ day }: { day: CalendarDay }) {
       <div className="w-1 shrink-0" style={{ backgroundColor: countryInfo.color }} />
       <div className="px-3 py-2 space-y-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-base leading-none">{countryInfo.flag}</span>
+          <span className="text-base leading-none">{flag}</span>
           <span className="text-xs font-semibold">{segment.city || segment.country}</span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -171,6 +177,7 @@ function TooltipDetail({ day }: { day: CalendarDay }) {
 function DrawerDetail({ day }: { day: CalendarDay }) {
   const segment = day.segment;
   const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
+  const flag = segment ? resolveFlag(segment.countryCode, segment.city) : null;
   const isPast = isDatePast(day.date);
 
   if (!segment || !countryInfo) {
@@ -199,7 +206,7 @@ function DrawerDetail({ day }: { day: CalendarDay }) {
           className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl"
           style={{ backgroundColor: countryInfo.color + "20" }}
         >
-          {countryInfo.flag}
+          {flag}
         </div>
         <div>
           <p className="font-semibold text-sm">{segment.city || segment.country}</p>

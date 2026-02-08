@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CalendarDay, YearSummary } from "@/lib/types";
-import { getCountryInfo } from "@/lib/countries";
+import { getCountryInfo, resolveFlag } from "@/lib/countries";
 import { TZ_OFFSETS } from "@/lib/timezone";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { MagicCard } from "@/components/ui/magic-card";
@@ -156,9 +156,17 @@ export function CountryStats({ months, yearSummary }: CountryStatsProps) {
     seenDest.add(key);
     const info = getCountryInfo(day.segment.countryCode);
     destinations.push({
-      flag: info.flag,
+      flag: resolveFlag(day.segment.countryCode, day.segment.city),
       label: day.segment.city || info.name,
     });
+  }
+
+  // Track a representative city per country for flag resolution in the distribution bar
+  const countryCityMap = new Map<string, string>();
+  for (const day of allDays) {
+    if (day.segment?.city && !countryCityMap.has(day.segment.countryCode)) {
+      countryCityMap.set(day.segment.countryCode, day.segment.city);
+    }
   }
 
   // Abroad percentage for circular progress
@@ -320,6 +328,7 @@ export function CountryStats({ months, yearSummary }: CountryStatsProps) {
         >
           {sorted.map(([code, days]) => {
             const info = getCountryInfo(code);
+            const flag = resolveFlag(code, countryCityMap.get(code));
             const pct = (days / totalDaysInYear) * 100;
             const isHovered = hoveredCode === code;
             const hasHover = hoveredCode !== null;
@@ -358,15 +367,15 @@ export function CountryStats({ months, yearSummary }: CountryStatsProps) {
                   >
                     {isHovered ? (
                       <span className="text-white text-xs sm:text-sm font-medium drop-shadow-md truncate whitespace-nowrap">
-                        {info.flag} {info.name} &middot; {days}d &middot; {Math.round(pct)}%
+                        {flag} {info.name} &middot; {days}d &middot; {Math.round(pct)}%
                       </span>
                     ) : showFlag ? (
-                      <span className="text-sm sm:text-base drop-shadow-sm">{info.flag}</span>
+                      <span className="text-sm sm:text-base drop-shadow-sm">{flag}</span>
                     ) : null}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>{info.flag} {info.name} &middot; {days}d &middot; {Math.round(pct)}%{code === homeCode ? " &middot; home" : ""}</span>
+                  <span>{flag} {info.name} &middot; {days}d &middot; {Math.round(pct)}%{code === homeCode ? " &middot; home" : ""}</span>
                 </TooltipContent>
               </Tooltip>
             );

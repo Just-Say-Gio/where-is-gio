@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { CalendarDay, TravelSegment } from "@/lib/types";
-import { getCountryInfo } from "@/lib/countries";
+import { getCountryInfo, resolveFlag } from "@/lib/countries";
 
 interface LegendProps {
   segments: TravelSegment[];
@@ -20,24 +20,29 @@ export function Legend({
   // Compute day counts per country from resolved calendar data
   const countriesWithCounts = useMemo(() => {
     const countMap = new Map<string, number>();
+    const cityMap = new Map<string, string>(); // first city per country code
     for (const month of months) {
       for (const day of month) {
         if (day.segment) {
           const code = day.segment.countryCode;
           countMap.set(code, (countMap.get(code) || 0) + 1);
+          if (!cityMap.has(code) && day.segment.city) {
+            cityMap.set(code, day.segment.city);
+          }
         }
       }
     }
     // Sort by day count descending
     return [...countMap.entries()]
       .sort((a, b) => b[1] - a[1])
-      .map(([code, days]) => ({ code, days }));
+      .map(([code, days]) => ({ code, days, city: cityMap.get(code) }));
   }, [months]);
 
   return (
     <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
-      {countriesWithCounts.map(({ code, days }) => {
+      {countriesWithCounts.map(({ code, days, city }) => {
         const info = getCountryInfo(code);
+        const flag = resolveFlag(code, city);
         const isActive = highlightCountry === code;
 
         return (
@@ -65,7 +70,7 @@ export function Legend({
               className="w-2.5 h-2.5 rounded-full shrink-0"
               style={{ backgroundColor: info.color }}
             />
-            <span>{info.flag}</span>
+            <span>{flag}</span>
             <span>{info.name}</span>
             <span className="text-muted-foreground/60 text-[10px] font-normal">{days}d</span>
           </button>

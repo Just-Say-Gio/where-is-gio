@@ -266,3 +266,25 @@ export function getCountryInfo(code: string): CountryInfo {
 }
 
 export const UNKNOWN_COLOR = "#CBD5E1";
+
+// Sub-national flag overrides (Scotland, Wales, England)
+const SCOTTISH_FLAG = "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}";
+const SCOTTISH_CITIES = [
+  "edinburgh", "glasgow", "aberdeen", "dundee", "inverness",
+  "stirling", "st andrews", "fort william", "perth, scotland",
+  "isle of skye", "highlands", "loch ness", "oban", "aviemore",
+];
+
+/**
+ * Resolve the correct flag for a segment, handling sub-national flags.
+ * Returns the Scottish flag 🏴󠁧󠁢󠁳󠁣󠁴󠁿 for GB segments with Scottish cities.
+ */
+export function resolveFlag(countryCode: string, city?: string): string {
+  if (countryCode === "GB" && city) {
+    const lower = city.toLowerCase();
+    if (lower.includes("scotland") || SCOTTISH_CITIES.some((sc) => lower.includes(sc))) {
+      return SCOTTISH_FLAG;
+    }
+  }
+  return getCountryInfo(countryCode).flag;
+}
