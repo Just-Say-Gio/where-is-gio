@@ -1,3 +1,5 @@
+// SHELVED: Replaced by friend-gate.tsx invite code system (Feb 2026).
+// Kept in repo for reference. Not imported anywhere.
 "use client";
 
 import { useState, useEffect, ReactNode } from "react";

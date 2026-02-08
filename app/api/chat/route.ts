@@ -148,6 +148,7 @@ export async function POST(req: NextRequest) {
     message: string;
     sessionId?: string;
     history?: { role: string; content: string }[];
+    friendId?: number;
   };
   try {
     body = await req.json();
@@ -168,6 +169,8 @@ export async function POST(req: NextRequest) {
   const sessionId = body.sessionId || ip;
   const ua = req.headers.get("user-agent") || undefined;
 
+  const friendId = typeof body.friendId === "number" ? body.friendId : undefined;
+
   // Log user message (fire-and-forget)
   logChatMessage({
     sessionId,
@@ -175,6 +178,7 @@ export async function POST(req: NextRequest) {
     content: body.message,
     ip,
     userAgent: ua,
+    friendId,
   });
 
   // Build system prompt from cached travel data
@@ -234,6 +238,7 @@ export async function POST(req: NextRequest) {
             ip,
             durationMs: Date.now() - streamStart,
             model: "llama-3.3-70b-versatile",
+            friendId,
           });
         } catch (err) {
           controller.error(err);

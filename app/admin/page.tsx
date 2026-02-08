@@ -269,6 +269,12 @@ export default function AdminPage() {
           >
             🏠 Manage Hosting Availability
           </a>
+          <a
+            href="/admin/friends"
+            className="block w-full py-3 px-4 rounded-xl border text-center font-semibold hover:bg-accent transition-colors"
+          >
+            🎟️ Invite Codes & Friends
+          </a>
         </div>
 
         <div className="flex justify-center gap-4">

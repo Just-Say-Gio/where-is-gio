@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     properties: body.properties,
     ip: getClientIp(req.headers),
     sessionId: body.sessionId,
+    friendId: typeof body.friendId === "number" ? body.friendId : undefined,
   });
 
   return NextResponse.json({ ok: true });

@@ -157,7 +157,12 @@ function ChatContent({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history, sessionId }),
+        body: JSON.stringify({
+          message: text,
+          history,
+          sessionId,
+          friendId: (() => { const id = localStorage.getItem("gio_friend_id"); return id ? Number(id) : undefined; })(),
+        }),
       });
 
       // Update remaining from header

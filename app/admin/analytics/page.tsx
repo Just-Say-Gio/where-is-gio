@@ -34,6 +34,7 @@ interface AnalyticsData {
   apiCalls: number;
   chatMessages: number;
   chatSessions: number;
+  registeredFriends: number;
   topPages: Array<{ path: string; count: number }>;
   topApiRoutes: Array<{ path: string; count: number }>;
   recentEvents: Array<{
@@ -42,6 +43,7 @@ interface AnalyticsData {
     properties: Record<string, unknown> | null;
     ip: string | null;
     sessionId: string | null;
+    friendName: string | null;
     createdAt: string;
   }>;
   deviceBreakdown: Array<{ device: string; count: number }>;
@@ -52,6 +54,7 @@ interface AnalyticsData {
     device: string | null;
     browser: string | null;
     country: string | null;
+    friendName: string | null;
     createdAt: string;
   }>;
   pageViewTrend: Array<{ bucket: string; views: number; visitors: number }>;
@@ -65,6 +68,32 @@ interface ChatSession {
   firstQuestion: string | null;
   ip: string | null;
   country: string | null;
+  friendName: string | null;
+}
+
+interface FriendSummary {
+  id: number;
+  displayName: string;
+  lastSeenAt: string;
+  createdAt: string;
+  inviteCode: { code: string; label: string | null };
+  pageViews: number;
+  chatMessages: number;
+  loginCount: number;
+  lastLoginAt: string | null;
+}
+
+interface FriendActivity {
+  friend: {
+    id: number;
+    displayName: string;
+    lastSeenAt: string;
+    createdAt: string;
+    inviteCode: { code: string; label: string | null };
+  };
+  pageViews: Array<{ path: string; device: string | null; country: string | null; createdAt: string }>;
+  chatMessages: Array<{ content: string; createdAt: string; sessionId: string }>;
+  events: Array<{ event: string; properties: Record<string, unknown> | null; ip: string | null; createdAt: string }>;
 }
 
 interface ChatMessage {
@@ -187,12 +216,16 @@ function Dashboard() {
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="friends">Friends</TabsTrigger>
               <TabsTrigger value="chats">Chat Logs</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
               <OverviewTab data={data} range={range} />
+            </TabsContent>
+            <TabsContent value="friends">
+              <FriendsTab />
             </TabsContent>
             <TabsContent value="chats">
               <ChatLogsTab />
@@ -246,9 +279,10 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
   return (
     <div className="space-y-6">
       {/* KPI Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard label="Page Views" value={data.pageViews} gradient="rgba(59,130,246,0.12)" />
         <MetricCard label="Unique Visitors" value={data.uniqueVisitors} gradient="rgba(139,92,246,0.12)" />
+        <MetricCard label="Friends" value={data.registeredFriends} gradient="rgba(34,197,94,0.12)" />
         <MetricCard label="API Calls" value={data.apiCalls} gradient="rgba(16,185,129,0.12)" />
         <MetricCard label="Chat Messages" value={data.chatMessages} gradient="rgba(236,72,153,0.10)" />
         <MetricCard label="Chat Sessions" value={data.chatSessions} gradient="rgba(249,115,22,0.12)" />
@@ -421,6 +455,7 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
               <thead>
                 <tr className="text-xs text-muted-foreground border-b">
                   <th className="text-left pb-2 font-medium">Time</th>
+                  <th className="text-left pb-2 font-medium">Friend</th>
                   <th className="text-left pb-2 font-medium">Path</th>
                   <th className="text-left pb-2 font-medium hidden sm:table-cell">Device</th>
                   <th className="text-left pb-2 font-medium hidden sm:table-cell">Browser</th>
@@ -432,6 +467,15 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
                   <tr key={i} className="border-b border-border/30">
                     <td className="py-1.5 text-muted-foreground text-xs font-mono whitespace-nowrap">
                       {timeAgo(pv.createdAt)}
+                    </td>
+                    <td className="py-1.5 text-xs">
+                      {pv.friendName ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                          {pv.friendName}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="py-1.5 font-mono text-xs max-w-[200px] truncate">{pv.path}</td>
                     <td className="py-1.5 text-muted-foreground text-xs capitalize hidden sm:table-cell">
@@ -519,9 +563,16 @@ function ChatLogsTab() {
                 <p className="text-sm line-clamp-2">
                   {s.firstQuestion ?? <span className="italic text-muted-foreground">No question</span>}
                 </p>
-                {s.country && (
-                  <span className="text-[10px] text-muted-foreground mt-1 block">{s.country}</span>
-                )}
+                <div className="flex items-center gap-2 mt-1">
+                  {s.friendName && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                      {s.friendName}
+                    </span>
+                  )}
+                  {s.country && (
+                    <span className="text-[10px] text-muted-foreground">{s.country}</span>
+                  )}
+                </div>
               </button>
             ))}
           </div>
@@ -573,6 +624,181 @@ function ChatLogsTab() {
   );
 }
 
+// ─── Friends Tab ────────────────────────────────────────
+
+function FriendsTab() {
+  const [friends, setFriends] = useState<FriendSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeFriend, setActiveFriend] = useState<number | null>(null);
+  const [activity, setActivity] = useState<FriendActivity | null>(null);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/analytics/friends")
+      .then((r) => r.json())
+      .then((d) => setFriends(d.friends ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const openFriend = async (friendId: number) => {
+    if (activeFriend === friendId) {
+      setActiveFriend(null);
+      setActivity(null);
+      return;
+    }
+    setActiveFriend(friendId);
+    setLoadingActivity(true);
+    try {
+      const res = await fetch(`/api/admin/analytics/friends?friendId=${friendId}`);
+      const d = await res.json();
+      setActivity(d);
+    } catch {
+      setActivity(null);
+    } finally {
+      setLoadingActivity(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center text-muted-foreground py-12 animate-pulse">Loading friends...</div>;
+  }
+
+  if (friends.length === 0) {
+    return <EmptyState message="No registered friends yet" />;
+  }
+
+  return (
+    <div className="space-y-3">
+      {friends.map((f) => (
+        <div key={f.id}>
+          <MagicCard
+            gradientColor="rgba(34,197,94,0.06)"
+            className={`p-4 cursor-pointer transition-all ${activeFriend === f.id ? "ring-1 ring-green-500/30" : ""}`}
+          >
+            <button onClick={() => openFriend(f.id)} className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center text-sm font-bold text-green-600 dark:text-green-400">
+                    {f.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">{f.displayName}</div>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span>Code: {f.inviteCode.code}</span>
+                      {f.inviteCode.label && <span>({f.inviteCode.label})</span>}
+                      <span>Joined {timeAgo(f.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="text-center">
+                    <div className="font-bold text-foreground tabular-nums">{f.pageViews}</div>
+                    <div className="text-[10px]">views</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-foreground tabular-nums">{f.chatMessages}</div>
+                    <div className="text-[10px]">chats</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-foreground tabular-nums">{f.loginCount}</div>
+                    <div className="text-[10px]">logins</div>
+                  </div>
+                  <div className="text-center hidden sm:block">
+                    <div className="font-bold text-foreground text-[10px]">
+                      {timeAgo(f.lastSeenAt)}
+                    </div>
+                    <div className="text-[10px]">last seen</div>
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Expanded activity */}
+            {activeFriend === f.id && (
+              <div className="mt-4 pt-4 border-t border-border/40">
+                {loadingActivity ? (
+                  <div className="text-center text-muted-foreground text-sm py-6 animate-pulse">Loading activity...</div>
+                ) : activity ? (
+                  <div className="space-y-4">
+                    {/* Recent page views */}
+                    {activity.pageViews.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                          Recent Page Views
+                        </p>
+                        <ScrollArea className="h-[200px]">
+                          <div className="space-y-1">
+                            {activity.pageViews.map((pv, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/20">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground font-mono whitespace-nowrap">{timeAgo(pv.createdAt)}</span>
+                                  <span className="font-mono">{pv.path}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  {pv.device && <span className="capitalize">{pv.device}</span>}
+                                  {pv.country && <span>{pv.country}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+
+                    {/* Recent chat messages */}
+                    {activity.chatMessages.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                          Recent Chat Messages
+                        </p>
+                        <div className="space-y-1">
+                          {activity.chatMessages.map((msg, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs py-1 border-b border-border/20">
+                              <span className="text-muted-foreground font-mono whitespace-nowrap shrink-0">{timeAgo(msg.createdAt)}</span>
+                              <span className="line-clamp-1">{msg.content}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Auth events */}
+                    {activity.events.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground tracking-widest uppercase mb-2">
+                          Auth Events
+                        </p>
+                        <div className="space-y-1">
+                          {activity.events.map((ev, i) => (
+                            <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/20">
+                              <div className="flex items-center gap-2">
+                                <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium">{ev.event}</span>
+                                <span className="text-muted-foreground font-mono">{timeAgo(ev.createdAt)}</span>
+                              </div>
+                              {ev.ip && <span className="text-muted-foreground text-[10px]">{ev.ip}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {activity.pageViews.length === 0 && activity.chatMessages.length === 0 && activity.events.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">No activity recorded yet</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">Failed to load activity</p>
+                )}
+              </div>
+            )}
+          </MagicCard>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Events Tab ─────────────────────────────────────────
 
 function EventsTab({ data }: { data: AnalyticsData }) {
@@ -594,6 +820,11 @@ function EventsTab({ data }: { data: AnalyticsData }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{ev.event}</span>
+                  {ev.friendName && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                      {ev.friendName}
+                    </span>
+                  )}
                   {ev.sessionId && (
                     <span className="text-[10px] text-muted-foreground font-mono">
                       {ev.sessionId.slice(0, 12)}...

@@ -44,6 +44,7 @@ function parseUserAgent(ua: string | null): {
 export function logPageView(data: {
   path: string;
   headers: Headers;
+  friendId?: number;
 }): void {
   const ip = getClientIp(data.headers);
   const ua = data.headers.get("user-agent");
@@ -54,7 +55,7 @@ export function logPageView(data: {
 
   prisma.pageView
     .create({
-      data: { path: data.path, ip, userAgent: ua, referer, country, city, device, browser, os },
+      data: { path: data.path, ip, userAgent: ua, referer, country, city, device, browser, os, friendId: data.friendId ?? null },
     })
     .catch((err) => console.error("[analytics] pageView:", err));
 }
@@ -94,6 +95,7 @@ export function logChatMessage(data: {
   country?: string;
   durationMs?: number;
   model?: string;
+  friendId?: number;
 }): void {
   prisma.chatMessage
     .create({
@@ -106,6 +108,7 @@ export function logChatMessage(data: {
         country: data.country,
         durationMs: data.durationMs,
         model: data.model,
+        friendId: data.friendId ?? null,
       },
     })
     .catch((err) => console.error("[analytics] chatMessage:", err));
@@ -116,6 +119,7 @@ export function logEvent(data: {
   properties?: Record<string, string | number | boolean | null>;
   ip?: string;
   sessionId?: string;
+  friendId?: number;
 }): void {
   prisma.analyticsEvent
     .create({
@@ -124,6 +128,7 @@ export function logEvent(data: {
         properties: data.properties ? (data.properties as Record<string, string | number | boolean | null>) : undefined,
         ip: data.ip,
         sessionId: data.sessionId,
+        friendId: data.friendId ?? null,
       },
     })
     .catch((err) => console.error("[analytics] event:", err));

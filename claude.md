@@ -16,7 +16,7 @@
 | Next.js | 16.x | React framework (App Router, ISR) |
 | TypeScript | 5.x | Type safety |
 | Tailwind CSS | 4.x | Utility-first styling |
-| shadcn/ui | Latest | UI components (tooltip, drawer, badge, card, popover) |
+| shadcn/ui | Latest | UI components (tooltip, drawer, badge, card, popover, tabs, chart) |
 | MagicUI | Latest | Animations (blur-fade, number-ticker, magic-card, border-beam, animated-gradient-text, animated-shiny-text, marquee, text-reveal, animated-circular-progress-bar) |
 | motion/react | Latest | Animation library (framer-motion successor) |
 | three-globe + react-three-fiber | Latest | 3D flight globe visualization |
@@ -24,8 +24,10 @@
 | leaflet.heat | 0.2.x | Heat layer plugin for Leaflet |
 | Notion API | @notionhq/client 5.x | Data source — fetches travel schedule blocks |
 | Groq SDK | 0.37.x | AI parsing + monthly insights + maps analytics (llama-3.3-70b-versatile, JSON mode) |
+| Prisma | 5.x | ORM for PostgreSQL analytics (page views, API calls, chat logs, events) |
+| Recharts | 2.x | Charts for admin analytics dashboard (area, bar, pie) |
 | sharp | 0.34.x | Image resizing (CLI script, devDependency) |
-| Railway | -- | Hosting (Nixpacks, Node 20+) |
+| Railway | -- | Hosting (Nixpacks, Node 20+) + PostgreSQL database |
 
 ---
 
@@ -93,6 +95,7 @@ Google Maps Takeout (raw, gitignored)
 | `/` | Dynamic (SSR) | Main page: calendar, stats, flights, countries, maps dashboard, heatmap |
 | `/when-can-I-stay` | Dynamic (SSR) | Public page showing Thailand availability for hosting |
 | `/admin` | Static | Sync button, cache status, sync logs with step timing |
+| `/admin/analytics` | Static | Analytics dashboard — traffic charts, device/country breakdown, chat logs, events |
 | `/admin/hosting` | Static | Interactive calendar to mark Thailand dates as unavailable |
 | `/api/sync` | API | Notion fetch + Groq parse + AI insights, step-by-step results |
 | `/api/sync/status` | API | Current cache status (last synced, segment count) |
@@ -103,6 +106,10 @@ Google Maps Takeout (raw, gitignored)
 | `/api/rice-runs` | API | GET/POST/DELETE for charity rice run dates |
 | `/api/maps-stats` | API | Returns `data/maps-stats.json` |
 | `/api/maps-stats/insights` | API (POST) | Generates AI insights via Groq, writes to maps-stats.json |
+| `/api/analytics/pageview` | API (POST) | Logs page views to PostgreSQL (fire-and-forget) |
+| `/api/analytics/event` | API (POST) | Logs custom analytics events to PostgreSQL |
+| `/api/admin/analytics` | API | Dashboard data: KPIs, trends, device/country breakdown, recent visitors |
+| `/api/admin/analytics/chats` | API | Chat session list + individual conversation threads |
 
 ---
 
@@ -209,6 +216,20 @@ page.tsx (Server) — reads cache + JSON files, passes data down
 - **Compact banner** on `/when-can-I-stay` page
 - **Data**: `rice-runs.json` (committed, survives Railway deploys), mirrored API at `/api/rice-runs`
 
+### Analytics (PostgreSQL)
+- **Persistent logging** — all page views, API calls, chat messages, and custom events logged to Railway PostgreSQL via Prisma
+- **Fire-and-forget pattern** — logging promises `.catch()` silently, never awaited, never blocks responses
+- **`withApiLogging(path, handler)` wrapper** — wraps all 8 public API routes for automatic API call tracking
+- **Chat persistence** — every user/assistant message stored with sessionId, IP, duration, model
+- **Persistent rate limiting** — chat rate limit (10/day per IP) via PostgreSQL upsert with atomic increment (survives Railway deploys, unlike in-memory Map)
+- **Admin dashboard** (`/admin/analytics`) — 3-tab Recharts + MagicUI dashboard:
+  - **Overview**: 5 KPI cards (NumberTicker), traffic trend AreaChart, device donut PieChart, top pages BarChart, country distribution bar, API route table, recent visitors table
+  - **Chat Logs**: session list with message counts + click-to-expand conversation threads (user/assistant message bubbles)
+  - **Events**: expandable event log with JSON properties
+- **Time range selector** — 24h / 7d / 30d / All, with PostgreSQL `date_trunc` bucketing (hour/day/week)
+- **60-second auto-refresh** polling on the dashboard
+- **Prisma schema** — 5 models: `PageView`, `ApiCall`, `ChatMessage`, `AnalyticsEvent`, `RateLimit`
+
 ### Other
 - **Dark mode** with localStorage persistence and flash prevention
 - **Friends-only auth gate** — 3-step quiz (Skoda -> Verstappen -> France joke)
@@ -238,27 +259,37 @@ where-is-gio/
 ├── scripts/
 │   └── process-maps-data.ts      # CLI: processes Google Maps Takeout → stats + heatmap
 │
+├── prisma/
+│   └── schema.prisma             # 5 models: PageView, ApiCall, ChatMessage, AnalyticsEvent, RateLimit
+│
 ├── app/
 │   ├── layout.tsx                # Root layout, Geist font, dark mode
 │   ├── page.tsx                  # Server component: reads cache + JSON, renders CalendarWrapper
 │   ├── globals.css               # Tailwind v4 + shadcn vars + Leaflet overrides + custom animations
+│   ├── admin/analytics/page.tsx  # Analytics dashboard: Recharts charts + MagicUI cards, 3 tabs
 │   ├── api/sync/route.ts         # Notion + Groq parse + AI monthly insights
-│   ├── api/chat/route.ts         # AI chatbot: Groq streaming + IP rate limiting + travel context
+│   ├── api/chat/route.ts         # AI chatbot: Groq streaming + persistent rate limiting + travel context
 │   ├── api/rice-runs/route.ts    # GET/POST/DELETE for rice run dates
 │   ├── api/maps-stats/route.ts   # GET: returns maps-stats.json
-│   └── api/maps-stats/insights/route.ts  # POST: generates Groq insights, updates JSON
+│   ├── api/maps-stats/insights/route.ts  # POST: generates Groq insights, updates JSON
+│   ├── api/analytics/pageview/route.ts   # POST: logs page views to PostgreSQL
+│   ├── api/analytics/event/route.ts      # POST: logs custom events to PostgreSQL
+│   ├── api/admin/analytics/route.ts      # GET: dashboard data (KPIs, trends, breakdowns)
+│   └── api/admin/analytics/chats/route.ts # GET: chat sessions + conversation threads
 │
 ├── components/
-│   ├── ui/                       # shadcn + MagicUI components (20 files)
+│   ├── ui/                       # shadcn + MagicUI components (23 files)
 │   │   ├── animated-circular-progress-bar.tsx  # Animated progress ring
 │   │   ├── animated-gradient-text.tsx          # MagicUI gradient text
 │   │   ├── animated-shiny-text.tsx             # MagicUI shiny text
 │   │   ├── blur-fade.tsx                       # MagicUI scroll reveal
 │   │   ├── border-beam.tsx                     # MagicUI animated border
+│   │   ├── chart.tsx                           # shadcn chart: ChartContainer + ChartTooltip (Recharts wrapper)
 │   │   ├── globe.tsx                           # Aceternity 3D globe + CameraTracker
 │   │   ├── magic-card.tsx                      # MagicUI spotlight card
 │   │   ├── marquee.tsx                         # MagicUI marquee/carousel
 │   │   ├── number-ticker.tsx                   # MagicUI counting animation
+│   │   ├── tabs.tsx                            # shadcn tabs (Radix)
 │   │   ├── text-reveal.tsx                     # MagicUI scroll-driven text reveal
 │   │   └── (badge, button, card, drawer, popover, scroll-area, textarea, tooltip).tsx  # shadcn/ui primitives
 │   ├── calendar-wrapper.tsx      # Client boundary: state, scroll, all sections, chat toggle
@@ -303,7 +334,9 @@ where-is-gio/
 │   ├── timeline-parser.ts        # Google Maps Timeline processor (visits, activities, distance, reviews, photos, heatmap)
 │   ├── leaflet-heat.d.ts         # Type shim for leaflet.heat (no @types package)
 │   ├── hosting.ts                # Hosting overrides (committed JSON)
-│   └── rice-runs.ts              # Rice run dates (committed JSON, mirrors hosting.ts)
+│   ├── rice-runs.ts              # Rice run dates (committed JSON, mirrors hosting.ts)
+│   ├── prisma.ts                 # Singleton Prisma client (global dev cache)
+│   └── analytics.ts              # Fire-and-forget helpers: logPageView, logApiCall, logChatMessage, logEvent, withApiLogging
 │
 ├── hooks/
 │   └── use-is-mobile.ts          # Shared hook: pointer:coarse media query
@@ -431,6 +464,7 @@ NOTION_API_KEY=           # Notion integration token
 NOTION_PAGE_ID=           # Travel outline page ID
 GROQ_API_KEY=             # Groq API key (free tier) — used by sync + CLI + insights API + chatbot
 SYNC_INTERVAL_HOURS=6     # Cache TTL in hours
+DATABASE_URL=             # PostgreSQL connection string (Railway private network)
 ```
 
 ---
@@ -442,6 +476,8 @@ SYNC_INTERVAL_HOURS=6     # Cache TTL in hours
 3. After deploy: visit `/admin` -> click "Sync from Notion"
 4. Custom domain: `whereisgio.com`
 
-**Note:** Railway containers are ephemeral — `.cache/` is wiped on each deploy. Re-sync from `/admin` after every deployment. `hosting-overrides.json`, `data/maps-stats.json`, `data/maps-heatmap.json`, and `public/photos/heatmap/` are all committed to git and survive deploys.
+**Note:** Railway containers are ephemeral — `.cache/` is wiped on each deploy. Re-sync from `/admin` after every deployment. `hosting-overrides.json`, `data/maps-stats.json`, `data/maps-heatmap.json`, and `public/photos/heatmap/` are all committed to git and survive deploys. PostgreSQL analytics data persists across deploys (Railway managed database).
+
+**Build script:** `npx prisma generate && next build` — Prisma client must be generated before Next.js build.
 
 **To update Maps data:** Run the CLI script locally with the raw Takeout files, commit the output, and push.

@@ -7,6 +7,7 @@ import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { MagicCard } from "@/components/ui/magic-card";
 import { TimezoneDisplay } from "./timezone-display";
+import { useFriend } from "@/lib/friend-context";
 
 interface HeaderProps {
   currentSegment: TravelSegment | null;
@@ -16,6 +17,7 @@ interface HeaderProps {
 }
 
 export function Header({ currentSegment, nextSegment, daysUntilNext, year }: HeaderProps) {
+  const { displayName } = useFriend();
   const countryInfo = currentSegment
     ? getCountryInfo(currentSegment.countryCode)
     : null;
@@ -45,6 +47,13 @@ export function Header({ currentSegment, nextSegment, daysUntilNext, year }: Hea
           Where Is Gio?
         </AnimatedGradientText>
       </h1>
+
+      {/* Personalized greeting */}
+      {displayName && (
+        <p className="text-sm text-muted-foreground">
+          Hey <span className="font-medium text-foreground">{displayName}</span> 👋
+        </p>
+      )}
 
       {/* Year badge with shimmer */}
       <div className="flex justify-center">

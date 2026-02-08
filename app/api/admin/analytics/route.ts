@@ -65,12 +65,13 @@ export async function GET(req: NextRequest) {
       apiCallCount,
       chatMessageCount,
       chatSessions,
+      registeredFriends,
       topPages,
       topApiRoutes,
-      recentEvents,
+      recentEventsRaw,
       deviceBreakdown,
       countryBreakdown,
-      recentPageViews,
+      recentPageViewsRaw,
       pageViewTrend,
     ] = await Promise.all([
       prisma.pageView.count({ where }),
@@ -78,6 +79,7 @@ export async function GET(req: NextRequest) {
       prisma.apiCall.count({ where }),
       prisma.chatMessage.count({ where }),
       prisma.chatMessage.groupBy({ by: ["sessionId"], where, _count: true }).then((r) => r.length),
+      prisma.friend.count(),
       prisma.pageView.groupBy({
         by: ["path"],
         where,
@@ -113,10 +115,39 @@ export async function GET(req: NextRequest) {
         where,
         orderBy: { createdAt: "desc" },
         take: 30,
-        select: { path: true, ip: true, device: true, browser: true, country: true, createdAt: true },
+        select: { path: true, ip: true, device: true, browser: true, country: true, friendId: true, createdAt: true },
       }),
       getPageViewTrend(range, since),
     ]);
+
+    // Batch-resolve friend names for page views and events
+    const pvFriendIds = recentPageViewsRaw.map((pv) => pv.friendId).filter((id): id is number => id !== null);
+    const evFriendIds = recentEventsRaw.map((ev) => ev.friendId).filter((id): id is number => id !== null);
+    const allFriendIds = [...new Set([...pvFriendIds, ...evFriendIds])];
+
+    const friendMap = new Map<number, string>();
+    if (allFriendIds.length > 0) {
+      const friends = await prisma.friend.findMany({
+        where: { id: { in: allFriendIds } },
+        select: { id: true, displayName: true },
+      });
+      for (const f of friends) friendMap.set(f.id, f.displayName);
+    }
+
+    const recentPageViews = recentPageViewsRaw.map((pv) => ({
+      path: pv.path,
+      ip: pv.ip,
+      device: pv.device,
+      browser: pv.browser,
+      country: pv.country,
+      friendName: pv.friendId ? friendMap.get(pv.friendId) ?? null : null,
+      createdAt: pv.createdAt,
+    }));
+
+    const recentEvents = recentEventsRaw.map((ev) => ({
+      ...ev,
+      friendName: ev.friendId ? friendMap.get(ev.friendId) ?? null : null,
+    }));
 
     return NextResponse.json({
       range,
@@ -125,6 +156,7 @@ export async function GET(req: NextRequest) {
       apiCalls: apiCallCount,
       chatMessages: chatMessageCount,
       chatSessions,
+      registeredFriends,
       topPages: topPages.map((p) => ({ path: p.path, count: p._count })),
       topApiRoutes: topApiRoutes.map((r) => ({ path: r.path, count: r._count })),
       recentEvents,

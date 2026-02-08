@@ -13,7 +13,8 @@ import { FlightStats } from "./flight-stats";
 import { CountryTracker } from "./country-tracker";
 import { ThemeToggle } from "./theme-toggle";
 import { CalendarLayoutToggle } from "./calendar-layout-toggle";
-import { AuthGate } from "./auth-gate";
+import { FriendGate } from "./friend-gate";
+import { FriendProvider } from "@/lib/friend-context";
 import { GioLocator } from "./gio-locator";
 import { TextReveal } from "./ui/text-reveal";
 import { MapsStats } from "./maps-stats";
@@ -344,5 +345,9 @@ export function CalendarWrapper({
     </TooltipProvider>
   );
 
-  return <AuthGate>{content}</AuthGate>;
+  return (
+    <FriendProvider>
+      <FriendGate>{content}</FriendGate>
+    </FriendProvider>
+  );
 }
