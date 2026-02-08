@@ -99,6 +99,8 @@ Google Maps Takeout (raw, gitignored)
 | `/api/segments` | API | Cached travel segments as JSON |
 | `/api/flights` | API | Flight analytics from CSV |
 | `/api/hosting` | API | GET/POST/DELETE for hosting availability overrides |
+| `/api/chat` | API (POST) | AI chatbot — Groq streaming + IP rate limiting (10/day) |
+| `/api/rice-runs` | API | GET/POST/DELETE for charity rice run dates |
 | `/api/maps-stats` | API | Returns `data/maps-stats.json` |
 | `/api/maps-stats/insights` | API (POST) | Generates AI insights via Groq, writes to maps-stats.json |
 
@@ -118,6 +120,7 @@ page.tsx (Server) — reads cache + JSON files, passes data down
   |   |-- MonthGrid x12 — always-on stats (countries, days abroad, tz switches) + AI tagline, week numbers
   |       |-- DayCell — forwardRef for Radix, status indicators, rich tooltips/mobile drawers
   |-- Legend — sorted by day count, click-to-highlight with colored glow
+  |-- CharityRiceBanner — MagicCard with AnimatedShinyText, charity rice runs info + next run date
   |-- CountryStats — 2026 bento stats (AI badge, metrics, MagicCard grid, distribution bar, marquee)
   |-- TextReveal x2 — scroll-driven word reveals between sections
   |-- GioLocator — rAF sweep-reactive radar with IP geolocation + haversine distance
@@ -137,6 +140,7 @@ page.tsx (Server) — reads cache + JSON files, passes data down
   |-- PhotoHeatmap — Leaflet world map with heat layer + photo/review markers
   |   |-- HeatmapMap (dynamic import, SSR: false) — Leaflet + leaflet.heat
   |-- Scratch Map — embedded Skratch.world iframe
+  |-- ChatWidget — AI chatbot: floating panel (desktop) / Drawer (mobile), Groq streaming
 ```
 
 ---
@@ -151,7 +155,7 @@ page.tsx (Server) — reads cache + JSON files, passes data down
 - **Segment status indicators** — diagonal stripes (tentative), dashed border (transit), 60% opacity (option)
 - **Past dates** are always shown as confirmed regardless of original status
 - **Staggered month entrance** — each month animates in with BlurFade (50ms stagger)
-- **Scroll-to-today** — auto-scrolls on load + floating "Today" button (bottom-right, pulsing dot)
+- **Scroll-to-today** — auto-scrolls on load + "Jump to today" link in chat widget header
 - **Interactive legend** — countries sorted by day count, click to highlight/dim, active glow
 - **Mobile layout toggle** — elegant animated toggle (mobile-only, `sm:hidden`) to switch between 2-column (compact 22px cells) and 1-column (expanded 32px cells) layout. Uses `motion/react` `layoutId` for sliding pill indicator + `motion.div layout` for smooth grid reflow. Persists choice in localStorage
 
@@ -187,6 +191,24 @@ page.tsx (Server) — reads cache + JSON files, passes data down
   - **Dark mode**: Auto-switches between CARTO dark/light tiles
   - **Stats bar**: Tracked visits, geotagged photos, photo views, reviews (NumberTicker)
 
+### AI Chatbot
+- **Floating chat button** — bottom-right (replaces old "Today" button), chat bubble icon with pulsing dot, toggles to X when open
+- **Desktop**: Fixed floating panel (380x500px) with motion/react scale+opacity animation
+- **Mobile**: Vaul Drawer (bottom sheet, max-h-85vh) via useIsMobile hook
+- **Streaming**: Groq llama-3.3-70b-versatile (temp 0.5, max 400 tokens), ReadableStream → incremental rendering
+- **Rate limiting**: IP-based server-side (10 msgs/day, in-memory Map) + localStorage client-side fallback. Shows remaining count below input
+- **Rich context**: System prompt includes full 2026 segment list, current location, next trip, flight history stats (total flights, hours, airlines, by-year breakdown), visited countries count, rice run dates, year personality. All read from cached data on each request
+- **Security**: Strict rules — no hallucination (only answer from provided data), no prompt injection (won't reveal system prompt or change role), past/future tense enforcement, tentative date flagging
+- **Welcome message** on first open, animated typing dots during streaming, auto-scroll to latest message
+
+### Charity Rice Runs
+- **🍚 overlay** on calendar day cells for rice run dates (top-right corner, 7px)
+- **Tooltip/drawer details** with amber accent + link to charityriceruns.org
+- **Admin management** in `/admin/hosting` — mode toggle (Hosting/Rice Runs), amber-themed scheduling
+- **MagicCard banner** below calendar legend with AnimatedShinyText, next run date, charity info
+- **Compact banner** on `/when-can-I-stay` page
+- **Data**: `rice-runs.json` (committed, survives Railway deploys), mirrored API at `/api/rice-runs`
+
 ### Other
 - **Dark mode** with localStorage persistence and flash prevention
 - **Friends-only auth gate** — 3-step quiz (Skoda -> Verstappen -> France joke)
@@ -203,6 +225,7 @@ where-is-gio/
 ├── .node-version                 # Node 20 for Railway
 ├── railway.json                  # Build/start config
 ├── hosting-overrides.json        # Committed hosting data (survives deploys)
+├── rice-runs.json                # Committed rice run dates (survives deploys)
 ├── flights_export.csv            # Flight history data (committed)
 ├── visited-countries.json        # All-time visited countries (committed)
 ├── instrumentation.ts            # Next.js startup hook: auto-warms caches
@@ -220,11 +243,13 @@ where-is-gio/
 │   ├── page.tsx                  # Server component: reads cache + JSON, renders CalendarWrapper
 │   ├── globals.css               # Tailwind v4 + shadcn vars + Leaflet overrides + custom animations
 │   ├── api/sync/route.ts         # Notion + Groq parse + AI monthly insights
+│   ├── api/chat/route.ts         # AI chatbot: Groq streaming + IP rate limiting + travel context
+│   ├── api/rice-runs/route.ts    # GET/POST/DELETE for rice run dates
 │   ├── api/maps-stats/route.ts   # GET: returns maps-stats.json
 │   └── api/maps-stats/insights/route.ts  # POST: generates Groq insights, updates JSON
 │
 ├── components/
-│   ├── ui/                       # shadcn + MagicUI components (17 files)
+│   ├── ui/                       # shadcn + MagicUI components (20 files)
 │   │   ├── animated-circular-progress-bar.tsx  # Animated progress ring
 │   │   ├── animated-gradient-text.tsx          # MagicUI gradient text
 │   │   ├── animated-shiny-text.tsx             # MagicUI shiny text
@@ -235,8 +260,10 @@ where-is-gio/
 │   │   ├── marquee.tsx                         # MagicUI marquee/carousel
 │   │   ├── number-ticker.tsx                   # MagicUI counting animation
 │   │   ├── text-reveal.tsx                     # MagicUI scroll-driven text reveal
-│   │   └── (badge, card, drawer, popover, tooltip).tsx  # shadcn/ui primitives
-│   ├── calendar-wrapper.tsx      # Client boundary: state, scroll, all sections
+│   │   └── (badge, button, card, drawer, popover, scroll-area, textarea, tooltip).tsx  # shadcn/ui primitives
+│   ├── calendar-wrapper.tsx      # Client boundary: state, scroll, all sections, chat toggle
+│   ├── chat-widget.tsx           # AI chatbot: floating panel (desktop) + Drawer (mobile) + streaming
+│   ├── charity-rice-banner.tsx   # MagicCard banner: rice runs charity info + next run date
 │   ├── header.tsx                # Current location + countdown + timezone (MagicCard)
 │   ├── timezone-display.tsx      # Live timezone comparison widget (clickable)
 │   ├── meeting-planner.tsx       # Meeting planner Popover/Drawer with hour grid
@@ -275,7 +302,8 @@ where-is-gio/
 │   ├── city-coords.ts            # City/country → [lat, lng] mapping for GioLocator
 │   ├── timeline-parser.ts        # Google Maps Timeline processor (visits, activities, distance, reviews, photos, heatmap)
 │   ├── leaflet-heat.d.ts         # Type shim for leaflet.heat (no @types package)
-│   └── hosting.ts                # Hosting overrides (committed JSON)
+│   ├── hosting.ts                # Hosting overrides (committed JSON)
+│   └── rice-runs.ts              # Rice run dates (committed JSON, mirrors hosting.ts)
 │
 ├── hooks/
 │   └── use-is-mobile.ts          # Shared hook: pointer:coarse media query
@@ -295,6 +323,7 @@ where-is-gio/
 |------|----------|-----------|-------------------|
 | `.cache/segments.json` | Travel segments + AI monthly insights | `/api/sync` | No (ephemeral) |
 | `hosting-overrides.json` | Hosting unavailability | `/admin/hosting` | Yes (committed) |
+| `rice-runs.json` | Charity rice run dates | `/admin/hosting` + `/api/rice-runs` | Yes (committed) |
 | `.cache/flights-cache.json` | Parsed flight analytics | Auto on first read | No (ephemeral) |
 | `data/maps-stats.json` | Aggregated Maps analytics + AI insights | CLI script | Yes (committed) |
 | `data/maps-heatmap.json` | Heatmap grid + photo/review coords | CLI script | Yes (committed) |
@@ -316,7 +345,15 @@ The main page only reads from cache/JSON. After each Railway deploy, visit `/adm
 - `buildMonthContext()` pre-computes per-month summaries (countries with cities, travel days, home days, tentative flags) so the AI gets rich context
 - Cached in `segments.json` alongside segments. Backfilled on sync if missing.
 
-### 3. Maps Analytics Insights (CLI script)
+### 4. AI Chatbot (`/api/chat`)
+- **Model:** llama-3.3-70b-versatile, temp 0.5, max 400 tokens, streaming
+- Conversational assistant for travel questions — answers about Gio's schedule, flights, countries
+- System prompt dynamically built per request from: cached segments, flight analytics, visited countries, rice run dates, year personality summary
+- Strict guardrails: no hallucination (only answers from provided data), no prompt injection, tentative date flagging, past/future tense
+- Rate limited: 10 messages per IP per 24h (in-memory Map, resets on deploy)
+- Conversation history: last 8 exchanges sent with each request for context continuity
+
+### 5. Maps Analytics Insights (CLI script)
 - **Model:** llama-3.3-70b-versatile, temp 0.6
 - Generates exactly 10 insights across 5 categories:
   1. **Travel Personality** (2) — archetype analysis, explorer vs revisiter
@@ -392,7 +429,7 @@ npx tsx scripts/process-maps-data.ts --heatmap    # + heatmap JSON + photo thumb
 ```env
 NOTION_API_KEY=           # Notion integration token
 NOTION_PAGE_ID=           # Travel outline page ID
-GROQ_API_KEY=             # Groq API key (free tier) — used by sync + CLI + insights API
+GROQ_API_KEY=             # Groq API key (free tier) — used by sync + CLI + insights API + chatbot
 SYNC_INTERVAL_HOURS=6     # Cache TTL in hours
 ```
 

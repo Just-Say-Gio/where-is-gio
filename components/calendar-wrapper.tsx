@@ -19,6 +19,7 @@ import { TextReveal } from "./ui/text-reveal";
 import { MapsStats } from "./maps-stats";
 import { PhotoHeatmap } from "./photo-heatmap";
 import { CharityRiceBanner } from "./charity-rice-banner";
+import { ChatWidget } from "./chat-widget";
 
 interface CalendarWrapperProps {
   segments: TravelSegment[];
@@ -48,6 +49,7 @@ export function CalendarWrapper({
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [today, setToday] = useState<string>("");
   const [calendarLayout, setCalendarLayout] = useState<"2col" | "1col">("2col");
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Restore calendar layout preference from localStorage
   useEffect(() => {
@@ -284,18 +286,38 @@ export function CalendarWrapper({
         </BlurFade>
       </div>
 
-      {/* Floating "Today" button */}
+      {/* Floating chat button */}
       <button
-        onClick={scrollToToday}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-foreground text-background text-xs font-medium shadow-lg hover:scale-105 transition-all duration-150 opacity-80 hover:opacity-100"
-        aria-label="Scroll to today"
+        onClick={() => setChatOpen((o) => !o)}
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-foreground text-background shadow-lg hover:scale-105 transition-all duration-150 opacity-80 hover:opacity-100"
+        aria-label={chatOpen ? "Close chat" : "Open chat"}
       >
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-background opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-background" />
-        </span>
-        Today
+        {chatOpen ? (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M3 4C3 3.44772 3.44772 3 4 3H16C16.5523 3 17 3.44772 17 4V13C17 13.5523 16.5523 14 16 14H7L3 17V4Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="7" cy="8.5" r="0.75" fill="currentColor" />
+              <circle cx="10" cy="8.5" r="0.75" fill="currentColor" />
+              <circle cx="13" cy="8.5" r="0.75" fill="currentColor" />
+            </svg>
+            <span className="absolute top-0 right-0 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-background opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-background" />
+            </span>
+          </>
+        )}
       </button>
+
+      {/* Chat widget */}
+      <ChatWidget
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        onScrollToToday={scrollToToday}
+      />
     </TooltipProvider>
   );
 
