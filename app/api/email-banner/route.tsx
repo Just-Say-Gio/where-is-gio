@@ -37,40 +37,34 @@ async function handler(req: NextRequest) {
   const current = segments ? getCurrentSegment(segments) : null;
   const next = segments ? getNextSegment(segments) : null;
 
-  // Determine what to show
-  const showCurrent = !!current;
-  const showNext = !!next;
-  const segment = showCurrent ? current! : showNext ? next!.segment : null;
-  const countryInfo = segment ? getCountryInfo(segment.countryCode) : null;
-  const flag = segment
-    ? resolveFlag(segment.countryCode, segment.city)
-    : "\u{1F1F9}\u{1F1ED}"; // 🇹🇭
-  const accentColor = countryInfo?.color ?? "#F97316";
+  const currentInfo = current ? getCountryInfo(current.countryCode) : null;
+  const currentFlag = current
+    ? resolveFlag(current.countryCode, current.city)
+    : null;
+  const nextInfo = next ? getCountryInfo(next.segment.countryCode) : null;
+  const nextFlag = next
+    ? resolveFlag(next.segment.countryCode, next.segment.city)
+    : null;
+
+  const homeInfo = getCountryInfo("TH");
+  const accentColor = currentInfo?.color ?? nextInfo?.color ?? homeInfo.color;
 
   const isDark = theme === "dark";
   const bg = isDark ? "#18181b" : "#ffffff";
   const fg = isDark ? "#fafafa" : "#18181b";
   const mutedFg = isDark ? "#a1a1aa" : "#71717a";
   const cardBg = isDark ? "#27272a" : "#f4f4f5";
+  const dividerColor = isDark ? "#3f3f46" : "#e4e4e7";
 
-  // --- Minimal style (600x80) ---
+  // --- Minimal style (600x100) — two lines ---
   if (style === "minimal") {
-    let line: string;
-    if (showCurrent) {
-      const city = current!.city || current!.country;
-      const dates = formatDateRange(current!.startDate, current!.endDate);
-      line = `${flag}  ${city} · ${dates} · right now`;
-    } else if (showNext) {
-      const city = next!.segment.city || next!.segment.country;
-      const dates = formatDateRange(
-        next!.segment.startDate,
-        next!.segment.endDate
-      );
-      const days = next!.daysUntil;
-      line = `${flag}  ${city} · ${dates} · in ${days} day${days !== 1 ? "s" : ""}`;
-    } else {
-      line = "\u{1F1F9}\u{1F1ED}  Home in Thailand · whereisgio.live";
-    }
+    const currentLine = current
+      ? `Now: ${currentFlag}  ${current.city || current.country} · ${formatDateRange(current.startDate, current.endDate)}`
+      : `${homeInfo.flag}  Home in Thailand`;
+
+    const nextLine = next
+      ? `Next: ${nextFlag}  ${next.segment.city || next.segment.country} · ${formatDateRange(next.segment.startDate, next.segment.endDate)} · ${getDuration(next.segment.startDate, next.segment.endDate)}d · in ${next.daysUntil} day${next.daysUntil !== 1 ? "s" : ""}`
+      : null;
 
     return new ImageResponse(
       (
@@ -84,7 +78,6 @@ async function handler(req: NextRequest) {
             fontFamily: "system-ui, sans-serif",
           }}
         >
-          {/* Accent strip */}
           <div
             style={{
               width: 6,
@@ -96,16 +89,31 @@ async function handler(req: NextRequest) {
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              justifyContent: "center",
               flex: 1,
               padding: "0 24px",
+              gap: 6,
             }}
           >
-            <span style={{ fontSize: 22, color: fg, fontWeight: 600 }}>
-              {showCurrent ? "Now:" : "Next:"} {line}
+            <span style={{ fontSize: 20, color: fg, fontWeight: 600 }}>
+              {currentLine}
             </span>
-            <span style={{ fontSize: 14, color: mutedFg }}>
+            {nextLine && (
+              <span style={{ fontSize: 16, color: mutedFg, fontWeight: 500 }}>
+                {nextLine}
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              padding: "0 16px 8px 0",
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 12, color: mutedFg, opacity: 0.7 }}>
               whereisgio.live
             </span>
           </div>
@@ -113,7 +121,7 @@ async function handler(req: NextRequest) {
       ),
       {
         width: 600,
-        height: 80,
+        height: nextLine ? 100 : 70,
         headers: {
           "Cache-Control": "public, max-age=3600, s-maxage=3600",
         },
@@ -121,7 +129,7 @@ async function handler(req: NextRequest) {
     );
   }
 
-  // --- Full style (600x200) ---
+  // --- Full style (600x250) — both current + next ---
   return new ImageResponse(
     (
       <div
@@ -133,15 +141,31 @@ async function handler(req: NextRequest) {
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        {/* Left accent strip */}
+        {/* Left accent — gradient from current to next color */}
         <div
           style={{
+            display: "flex",
+            flexDirection: "column",
             width: 8,
             height: "100%",
-            backgroundColor: accentColor,
             flexShrink: 0,
           }}
-        />
+        >
+          <div
+            style={{
+              flex: 1,
+              backgroundColor: currentInfo?.color ?? homeInfo.color,
+            }}
+          />
+          {next && (
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: nextInfo?.color ?? "#3B82F6",
+              }}
+            />
+          )}
+        </div>
 
         {/* Main content */}
         <div
@@ -150,116 +174,168 @@ async function handler(req: NextRequest) {
             flexDirection: "column",
             justifyContent: "center",
             flex: 1,
-            padding: "24px 32px",
-            gap: 8,
+            padding: "20px 28px",
+            gap: 12,
           }}
         >
-          {/* Title */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              fontSize: 14,
-              color: mutedFg,
-              fontWeight: 500,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase" as const,
-            }}
-          >
-            {showCurrent ? "Currently in" : showNext ? "Next trip" : "Home base"}
-          </div>
-
-          {/* Destination */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span style={{ fontSize: 40 }}>{flag}</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 28, fontWeight: 700, color: fg }}>
-                {segment
-                  ? segment.city || segment.country
-                  : "Thailand"}
+          {/* Current location row */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11,
+                color: mutedFg,
+                fontWeight: 500,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              {current ? "Currently in" : "Home base"}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 32 }}>
+                {currentFlag ?? homeInfo.flag}
               </span>
-              <span style={{ fontSize: 16, color: mutedFg }}>
-                {segment
-                  ? countryInfo?.name ?? segment.country
-                  : "Hua Hin"}
-              </span>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 1 }}
+              >
+                <span style={{ fontSize: 24, fontWeight: 700, color: fg }}>
+                  {current ? current.city || current.country : "Thailand"}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {current && (
+                    <span style={{ fontSize: 13, color: mutedFg }}>
+                      {formatDateRange(current.startDate, current.endDate)} ·{" "}
+                      {getDuration(current.startDate, current.endDate)}d
+                    </span>
+                  )}
+                  {current && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 7,
+                          height: 7,
+                          borderRadius: "50%",
+                          backgroundColor: currentInfo?.color,
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: currentInfo?.color,
+                        }}
+                      >
+                        right now
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Date range + countdown */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              marginTop: 4,
-            }}
-          >
-            {segment && (
+          {/* Divider + next trip */}
+          {next && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: cardBg,
-                  borderRadius: 8,
-                  padding: "6px 12px",
-                  gap: 8,
+                  height: 1,
+                  backgroundColor: dividerColor,
+                  width: "100%",
                 }}
-              >
-                <span style={{ fontSize: 14, color: fg, fontWeight: 500 }}>
-                  {formatDateRange(segment.startDate, segment.endDate)}
-                </span>
-                <span style={{ fontSize: 12, color: mutedFg }}>
-                  · {getDuration(segment.startDate, segment.endDate)} days
-                </span>
-              </div>
-            )}
-            {showCurrent && (
+              />
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
+                style={{ display: "flex", flexDirection: "column", gap: 4 }}
               >
                 <div
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: accentColor,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: accentColor,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 11,
+                    color: mutedFg,
+                    fontWeight: 500,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
                   }}
                 >
-                  right now
-                </span>
+                  Next trip
+                </div>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 10 }}
+                >
+                  <span style={{ fontSize: 28 }}>{nextFlag}</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: 20, fontWeight: 700, color: fg }}
+                    >
+                      {next.segment.city || next.segment.country}
+                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          backgroundColor: cardBg,
+                          borderRadius: 6,
+                          padding: "3px 8px",
+                          gap: 6,
+                        }}
+                      >
+                        <span
+                          style={{ fontSize: 13, color: fg, fontWeight: 500 }}
+                        >
+                          {formatDateRange(
+                            next.segment.startDate,
+                            next.segment.endDate
+                          )}
+                        </span>
+                        <span style={{ fontSize: 11, color: mutedFg }}>
+                          ·{" "}
+                          {getDuration(
+                            next.segment.startDate,
+                            next.segment.endDate
+                          )}
+                          d
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: nextInfo?.color,
+                        }}
+                      >
+                        in {next.daysUntil} day
+                        {next.daysUntil !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-            {!showCurrent && showNext && (
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: accentColor,
-                }}
-              >
-                in {next!.daysUntil} day{next!.daysUntil !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Watermark */}
@@ -268,16 +344,11 @@ async function handler(req: NextRequest) {
             display: "flex",
             alignItems: "flex-end",
             justifyContent: "flex-end",
-            padding: "0 16px 12px 0",
+            padding: "0 14px 10px 0",
+            flexShrink: 0,
           }}
         >
-          <span
-            style={{
-              fontSize: 12,
-              color: mutedFg,
-              opacity: 0.7,
-            }}
-          >
+          <span style={{ fontSize: 11, color: mutedFg, opacity: 0.6 }}>
             whereisgio.live
           </span>
         </div>
@@ -285,7 +356,7 @@ async function handler(req: NextRequest) {
     ),
     {
       width: 600,
-      height: 200,
+      height: next ? 250 : 160,
       headers: {
         "Cache-Control": "public, max-age=3600, s-maxage=3600",
       },
