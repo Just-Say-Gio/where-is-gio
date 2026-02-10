@@ -4,7 +4,7 @@
 
 **Where Is Gio** is a polished travel calendar website showing where Gio is (or will be) throughout 2026. It syncs with a Notion travel outline, uses Groq AI to parse unstructured notes into structured data AND generate monthly taglines, and displays a color-coded year calendar with rich tooltips, mobile drawers, travel stats, flight analytics, a 3D globe, a country tracker, and a full Google Maps movement history dashboard with photo heatmap.
 
-**Live at:** `whereisgio.com`
+**Live at:** `whereisgio.live`
 **Repo:** `github.com/Just-Say-Gio/where-is-gio`
 
 ---
@@ -474,7 +474,7 @@ DATABASE_URL=             # PostgreSQL connection string (Railway private networ
 1. Push to `github.com/Just-Say-Gio/where-is-gio`
 2. Railway auto-deploys from `main` branch
 3. After deploy: visit `/admin` -> click "Sync from Notion"
-4. Custom domain: `whereisgio.com`
+4. Custom domain: `whereisgio.live`
 
 **Note:** Railway containers are ephemeral — `.cache/` is wiped on each deploy. Re-sync from `/admin` after every deployment. `hosting-overrides.json`, `data/maps-stats.json`, `data/maps-heatmap.json`, and `public/photos/heatmap/` are all committed to git and survive deploys. PostgreSQL analytics data persists across deploys (Railway managed database).
 

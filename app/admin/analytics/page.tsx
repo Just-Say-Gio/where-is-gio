@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { AdminPinGate } from "@/components/admin-pin-gate";
-import { MagicCard } from "@/components/ui/magic-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -126,7 +126,7 @@ function formatBucket(dateStr: string, range: Range): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-const DEVICE_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
+const DEVICE_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
 
 const RANGES: { value: Range; label: string }[] = [
   { value: "24h", label: "24h" },
@@ -259,12 +259,12 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
   }));
 
   const trendConfig: ChartConfig = {
-    views: { label: "Page Views", color: "hsl(var(--chart-1))" },
-    visitors: { label: "Visitors", color: "hsl(var(--chart-2))" },
+    views: { label: "Page Views", color: "var(--chart-1)" },
+    visitors: { label: "Visitors", color: "var(--chart-2)" },
   };
 
   const barConfig: ChartConfig = {
-    count: { label: "Hits", color: "hsl(var(--chart-1))" },
+    count: { label: "Hits", color: "var(--chart-1)" },
   };
 
   const deviceConfig: ChartConfig = Object.fromEntries(
@@ -280,53 +280,57 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
     <div className="space-y-6">
       {/* KPI Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <MetricCard label="Page Views" value={data.pageViews} gradient="rgba(59,130,246,0.12)" />
-        <MetricCard label="Unique Visitors" value={data.uniqueVisitors} gradient="rgba(139,92,246,0.12)" />
-        <MetricCard label="Friends" value={data.registeredFriends} gradient="rgba(34,197,94,0.12)" />
-        <MetricCard label="API Calls" value={data.apiCalls} gradient="rgba(16,185,129,0.12)" />
-        <MetricCard label="Chat Messages" value={data.chatMessages} gradient="rgba(236,72,153,0.10)" />
-        <MetricCard label="Chat Sessions" value={data.chatSessions} gradient="rgba(249,115,22,0.12)" />
+        <MetricCard label="Page Views" value={data.pageViews} color="var(--chart-1)" />
+        <MetricCard label="Unique Visitors" value={data.uniqueVisitors} color="var(--chart-4)" />
+        <MetricCard label="Friends" value={data.registeredFriends} color="var(--chart-2)" />
+        <MetricCard label="API Calls" value={data.apiCalls} color="var(--chart-2)" />
+        <MetricCard label="Chat Messages" value={data.chatMessages} color="var(--chart-5)" />
+        <MetricCard label="Chat Sessions" value={data.chatSessions} color="var(--chart-3)" />
       </div>
 
       {/* Page View Trend */}
       {trendData.length > 0 ? (
-        <MagicCard gradientColor="rgba(59,130,246,0.08)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            Traffic Trend
-          </p>
-          <ChartContainer config={trendConfig} className="h-[250px] w-full">
-            <AreaChart data={trendData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
-                </linearGradient>
-                <linearGradient id="fillVisitors" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
-              <YAxis tickLine={false} axisLine={false} fontSize={11} allowDecimals={false} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey="views"
-                stroke="hsl(var(--chart-1))"
-                fill="url(#fillViews)"
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="visitors"
-                stroke="hsl(var(--chart-2))"
-                fill="url(#fillVisitors)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </MagicCard>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              Traffic Trend
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={trendConfig} className="h-[250px] w-full">
+              <AreaChart data={trendData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.05} />
+                  </linearGradient>
+                  <linearGradient id="fillVisitors" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--chart-2)" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="var(--chart-2)" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} tick={{ fill: "var(--muted-foreground)" }} />
+                <YAxis tickLine={false} axisLine={false} fontSize={11} allowDecimals={false} tick={{ fill: "var(--muted-foreground)" }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  type="monotone"
+                  dataKey="views"
+                  stroke="var(--chart-1)"
+                  fill="url(#fillViews)"
+                  strokeWidth={2}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="visitors"
+                  stroke="var(--chart-2)"
+                  fill="url(#fillVisitors)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
       ) : (
         <EmptyState message="No traffic data for this period" />
       )}
@@ -334,163 +338,184 @@ function OverviewTab({ data, range }: { data: AnalyticsData; range: Range }) {
       {/* Two-column: Device Donut + Top Pages Bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Device Breakdown */}
-        <MagicCard gradientColor="rgba(139,92,246,0.08)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            Devices
-          </p>
-          {totalDevices > 0 ? (
-            <div className="h-[200px] relative">
-              <ChartContainer config={deviceConfig} className="h-full w-full">
-                <PieChart>
-                  <Pie
-                    data={data.deviceBreakdown}
-                    dataKey="count"
-                    nameKey="device"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={80}
-                    strokeWidth={2}
-                    stroke="hsl(var(--background))"
-                  >
-                    {data.deviceBreakdown.map((_, i) => (
-                      <Cell key={i} fill={DEVICE_COLORS[i % DEVICE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ChartContainer>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{totalDevices}</div>
-                  <div className="text-[10px] text-muted-foreground">total</div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              Devices
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {totalDevices > 0 ? (
+              <div className="h-[200px] relative">
+                <ChartContainer config={deviceConfig} className="h-full w-full">
+                  <PieChart>
+                    <Pie
+                      data={data.deviceBreakdown}
+                      dataKey="count"
+                      nameKey="device"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={80}
+                      strokeWidth={2}
+                      stroke="var(--card)"
+                    >
+                      {data.deviceBreakdown.map((_, i) => (
+                        <Cell key={i} fill={DEVICE_COLORS[i % DEVICE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ChartContainer>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-card-foreground">{totalDevices}</div>
+                    <div className="text-[10px] text-muted-foreground">total</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <EmptyState message="No device data" />
-          )}
-          {totalDevices > 0 && (
-            <div className="flex justify-center gap-4 mt-2">
-              {data.deviceBreakdown.map((d, i) => (
-                <div key={d.device} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: DEVICE_COLORS[i % DEVICE_COLORS.length] }}
-                  />
-                  {d.device} ({d.count})
-                </div>
-              ))}
-            </div>
-          )}
-        </MagicCard>
+            ) : (
+              <EmptyState message="No device data" />
+            )}
+            {totalDevices > 0 && (
+              <div className="flex justify-center gap-4 mt-2">
+                {data.deviceBreakdown.map((d, i) => (
+                  <div key={d.device} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: DEVICE_COLORS[i % DEVICE_COLORS.length] }}
+                    />
+                    {d.device} ({d.count})
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Top Pages */}
-        <MagicCard gradientColor="rgba(16,185,129,0.08)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            Top Pages
-          </p>
-          {data.topPages.length > 0 ? (
-            <ChartContainer config={barConfig} className="h-[230px] w-full">
-              <BarChart
-                data={data.topPages}
-                layout="vertical"
-                margin={{ top: 0, right: 10, bottom: 0, left: 0 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis
-                  type="category"
-                  dataKey="path"
-                  width={120}
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={11}
-                  tickFormatter={(v: string) => (v.length > 18 ? v.slice(0, 18) + "..." : v)}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ChartContainer>
-          ) : (
-            <EmptyState message="No page data" />
-          )}
-        </MagicCard>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              Top Pages
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {data.topPages.length > 0 ? (
+              <ChartContainer config={barConfig} className="h-[230px] w-full">
+                <BarChart
+                  data={data.topPages}
+                  layout="vertical"
+                  margin={{ top: 0, right: 10, bottom: 0, left: 0 }}
+                >
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category"
+                    dataKey="path"
+                    width={120}
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    tick={{ fill: "var(--muted-foreground)" }}
+                    tickFormatter={(v: string) => (v.length > 18 ? v.slice(0, 18) + "..." : v)}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="count" fill="var(--chart-1)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <EmptyState message="No page data" />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Country Breakdown */}
       {data.countryBreakdown.length > 0 && (
-        <MagicCard gradientColor="rgba(249,115,22,0.08)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            Countries
-          </p>
-          <CountryBar data={data.countryBreakdown} />
-        </MagicCard>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              Countries
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CountryBar data={data.countryBreakdown} />
+          </CardContent>
+        </Card>
       )}
 
       {/* Top API Routes */}
       {data.topApiRoutes.length > 0 && (
-        <MagicCard gradientColor="rgba(16,185,129,0.06)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            API Routes
-          </p>
-          <div className="space-y-2">
-            {data.topApiRoutes.map((r) => (
-              <div key={r.path} className="flex items-center justify-between text-sm">
-                <code className="text-xs font-mono text-muted-foreground">{r.path}</code>
-                <span className="font-medium tabular-nums">{r.count}</span>
-              </div>
-            ))}
-          </div>
-        </MagicCard>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              API Routes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {data.topApiRoutes.map((r) => (
+                <div key={r.path} className="flex items-center justify-between text-sm">
+                  <code className="text-xs font-mono text-muted-foreground">{r.path}</code>
+                  <span className="font-medium tabular-nums text-card-foreground">{r.count}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Recent Page Views */}
       {data.recentPageViews.length > 0 && (
-        <MagicCard gradientColor="rgba(59,130,246,0.04)" className="p-4 sm:p-6">
-          <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-            Recent Visitors
-          </p>
-          <ScrollArea className="h-[300px]">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-muted-foreground border-b">
-                  <th className="text-left pb-2 font-medium">Time</th>
-                  <th className="text-left pb-2 font-medium">Friend</th>
-                  <th className="text-left pb-2 font-medium">Path</th>
-                  <th className="text-left pb-2 font-medium hidden sm:table-cell">Device</th>
-                  <th className="text-left pb-2 font-medium hidden sm:table-cell">Browser</th>
-                  <th className="text-left pb-2 font-medium">Country</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentPageViews.map((pv, i) => (
-                  <tr key={i} className="border-b border-border/30">
-                    <td className="py-1.5 text-muted-foreground text-xs font-mono whitespace-nowrap">
-                      {timeAgo(pv.createdAt)}
-                    </td>
-                    <td className="py-1.5 text-xs">
-                      {pv.friendName ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
-                          {pv.friendName}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="py-1.5 font-mono text-xs max-w-[200px] truncate">{pv.path}</td>
-                    <td className="py-1.5 text-muted-foreground text-xs capitalize hidden sm:table-cell">
-                      {pv.device ?? "—"}
-                    </td>
-                    <td className="py-1.5 text-muted-foreground text-xs hidden sm:table-cell">
-                      {pv.browser ?? "—"}
-                    </td>
-                    <td className="py-1.5 text-xs">{pv.country ?? "—"}</td>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+              Recent Visitors
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[300px]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-muted-foreground border-b">
+                    <th className="text-left pb-2 font-medium">Time</th>
+                    <th className="text-left pb-2 font-medium">Friend</th>
+                    <th className="text-left pb-2 font-medium">Path</th>
+                    <th className="text-left pb-2 font-medium hidden sm:table-cell">Device</th>
+                    <th className="text-left pb-2 font-medium hidden sm:table-cell">Browser</th>
+                    <th className="text-left pb-2 font-medium">Country</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </ScrollArea>
-        </MagicCard>
+                </thead>
+                <tbody>
+                  {data.recentPageViews.map((pv, i) => (
+                    <tr key={i} className="border-b border-border/30">
+                      <td className="py-1.5 text-muted-foreground text-xs font-mono whitespace-nowrap">
+                        {timeAgo(pv.createdAt)}
+                      </td>
+                      <td className="py-1.5 text-xs">
+                        {pv.friendName ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                            {pv.friendName}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="py-1.5 font-mono text-xs text-card-foreground max-w-[200px] truncate">{pv.path}</td>
+                      <td className="py-1.5 text-muted-foreground text-xs capitalize hidden sm:table-cell">
+                        {pv.device ?? "—"}
+                      </td>
+                      <td className="py-1.5 text-muted-foreground text-xs hidden sm:table-cell">
+                        {pv.browser ?? "—"}
+                      </td>
+                      <td className="py-1.5 text-xs text-card-foreground">{pv.country ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -538,88 +563,96 @@ function ChatLogsTab() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-4">
       {/* Session list */}
-      <MagicCard gradientColor="rgba(236,72,153,0.06)" className="p-3">
-        <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3 px-1">
-          Sessions ({sessions.length})
-        </p>
-        <ScrollArea className="h-[500px]">
-          <div className="space-y-1">
-            {sessions.map((s) => (
-              <button
-                key={s.sessionId}
-                onClick={() => openSession(s.sessionId)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
-                  activeSession === s.sessionId
-                    ? "bg-foreground/10 border border-border"
-                    : "hover:bg-muted/50"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-muted-foreground">{timeAgo(s.startedAt)}</span>
-                  <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full tabular-nums">
-                    {s.messageCount} msg{s.messageCount !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <p className="text-sm line-clamp-2">
-                  {s.firstQuestion ?? <span className="italic text-muted-foreground">No question</span>}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  {s.friendName && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
-                      {s.friendName}
-                    </span>
-                  )}
-                  {s.country && (
-                    <span className="text-[10px] text-muted-foreground">{s.country}</span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
-      </MagicCard>
-
-      {/* Conversation thread */}
-      <MagicCard gradientColor="rgba(236,72,153,0.04)" className="p-3">
-        <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-3 px-1">
-          Conversation
-        </p>
-        {!activeSession ? (
-          <div className="flex items-center justify-center h-[500px] text-sm text-muted-foreground">
-            Select a session to view
-          </div>
-        ) : loadingThread ? (
-          <div className="flex items-center justify-center h-[500px] text-sm text-muted-foreground animate-pulse">
-            Loading...
-          </div>
-        ) : (
+      <Card className="py-3">
+        <CardHeader className="pb-2 pt-1">
+          <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+            Sessions ({sessions.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <ScrollArea className="h-[500px]">
-            <div className="space-y-3 p-1">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            <div className="space-y-1">
+              {sessions.map((s) => (
+                <button
+                  key={s.sessionId}
+                  onClick={() => openSession(s.sessionId)}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${
+                    activeSession === s.sessionId
+                      ? "bg-accent border border-border"
+                      : "hover:bg-accent/50"
+                  }`}
                 >
-                  <div
-                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                      msg.role === "user"
-                        ? "bg-foreground/10 text-foreground"
-                        : "bg-muted border text-foreground"
-                    }`}
-                  >
-                    <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                    <div className="flex gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
-                      <span>{timeAgo(msg.createdAt)}</span>
-                      {msg.durationMs && <span>{msg.durationMs}ms</span>}
-                      {msg.model && <span>{msg.model}</span>}
-                    </div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-muted-foreground">{timeAgo(s.startedAt)}</span>
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full tabular-nums text-muted-foreground">
+                      {s.messageCount} msg{s.messageCount !== 1 ? "s" : ""}
+                    </span>
                   </div>
-                </div>
+                  <p className="text-sm text-card-foreground line-clamp-2">
+                    {s.firstQuestion ?? <span className="italic text-muted-foreground">No question</span>}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {s.friendName && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                        {s.friendName}
+                      </span>
+                    )}
+                    {s.country && (
+                      <span className="text-[10px] text-muted-foreground">{s.country}</span>
+                    )}
+                  </div>
+                </button>
               ))}
             </div>
           </ScrollArea>
-        )}
-      </MagicCard>
+        </CardContent>
+      </Card>
+
+      {/* Conversation thread */}
+      <Card className="py-3">
+        <CardHeader className="pb-2 pt-1">
+          <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+            Conversation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!activeSession ? (
+            <div className="flex items-center justify-center h-[500px] text-sm text-muted-foreground">
+              Select a session to view
+            </div>
+          ) : loadingThread ? (
+            <div className="flex items-center justify-center h-[500px] text-sm text-muted-foreground animate-pulse">
+              Loading...
+            </div>
+          ) : (
+            <ScrollArea className="h-[500px]">
+              <div className="space-y-3 p-1">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                        msg.role === "user"
+                          ? "bg-primary/10 text-card-foreground"
+                          : "bg-muted border text-card-foreground"
+                      }`}
+                    >
+                      <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <div className="flex gap-2 mt-1.5 text-[10px] text-muted-foreground/60">
+                        <span>{timeAgo(msg.createdAt)}</span>
+                        {msg.durationMs && <span>{msg.durationMs}ms</span>}
+                        {msg.model && <span>{msg.model}</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -671,11 +704,8 @@ function FriendsTab() {
   return (
     <div className="space-y-3">
       {friends.map((f) => (
-        <div key={f.id}>
-          <MagicCard
-            gradientColor="rgba(34,197,94,0.06)"
-            className={`p-4 cursor-pointer transition-all ${activeFriend === f.id ? "ring-1 ring-green-500/30" : ""}`}
-          >
+        <Card key={f.id} className={`py-4 cursor-pointer transition-all ${activeFriend === f.id ? "ring-1 ring-green-500/30" : ""}`}>
+          <CardContent className="py-0">
             <button onClick={() => openFriend(f.id)} className="w-full text-left">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -683,7 +713,7 @@ function FriendsTab() {
                     {f.displayName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-medium text-sm">{f.displayName}</div>
+                    <div className="font-medium text-sm text-card-foreground">{f.displayName}</div>
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                       <span>Code: {f.inviteCode.code}</span>
                       {f.inviteCode.label && <span>({f.inviteCode.label})</span>}
@@ -693,19 +723,19 @@ function FriendsTab() {
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="text-center">
-                    <div className="font-bold text-foreground tabular-nums">{f.pageViews}</div>
+                    <div className="font-bold text-card-foreground tabular-nums">{f.pageViews}</div>
                     <div className="text-[10px]">views</div>
                   </div>
                   <div className="text-center">
-                    <div className="font-bold text-foreground tabular-nums">{f.chatMessages}</div>
+                    <div className="font-bold text-card-foreground tabular-nums">{f.chatMessages}</div>
                     <div className="text-[10px]">chats</div>
                   </div>
                   <div className="text-center">
-                    <div className="font-bold text-foreground tabular-nums">{f.loginCount}</div>
+                    <div className="font-bold text-card-foreground tabular-nums">{f.loginCount}</div>
                     <div className="text-[10px]">logins</div>
                   </div>
                   <div className="text-center hidden sm:block">
-                    <div className="font-bold text-foreground text-[10px]">
+                    <div className="font-bold text-card-foreground text-[10px]">
                       {timeAgo(f.lastSeenAt)}
                     </div>
                     <div className="text-[10px]">last seen</div>
@@ -733,7 +763,7 @@ function FriendsTab() {
                               <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/20">
                                 <div className="flex items-center gap-2">
                                   <span className="text-muted-foreground font-mono whitespace-nowrap">{timeAgo(pv.createdAt)}</span>
-                                  <span className="font-mono">{pv.path}</span>
+                                  <span className="font-mono text-card-foreground">{pv.path}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                   {pv.device && <span className="capitalize">{pv.device}</span>}
@@ -756,7 +786,7 @@ function FriendsTab() {
                           {activity.chatMessages.map((msg, i) => (
                             <div key={i} className="flex items-start gap-2 text-xs py-1 border-b border-border/20">
                               <span className="text-muted-foreground font-mono whitespace-nowrap shrink-0">{timeAgo(msg.createdAt)}</span>
-                              <span className="line-clamp-1">{msg.content}</span>
+                              <span className="line-clamp-1 text-card-foreground">{msg.content}</span>
                             </div>
                           ))}
                         </div>
@@ -773,7 +803,7 @@ function FriendsTab() {
                           {activity.events.map((ev, i) => (
                             <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/20">
                               <div className="flex items-center gap-2">
-                                <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium">{ev.event}</span>
+                                <span className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] font-medium text-muted-foreground">{ev.event}</span>
                                 <span className="text-muted-foreground font-mono">{timeAgo(ev.createdAt)}</span>
                               </div>
                               {ev.ip && <span className="text-muted-foreground text-[10px]">{ev.ip}</span>}
@@ -792,8 +822,8 @@ function FriendsTab() {
                 )}
               </div>
             )}
-          </MagicCard>
-        </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
@@ -809,64 +839,70 @@ function EventsTab({ data }: { data: AnalyticsData }) {
   }
 
   return (
-    <MagicCard gradientColor="rgba(139,92,246,0.06)" className="p-4 sm:p-6">
-      <p className="text-xs font-semibold text-muted-foreground tracking-widest uppercase mb-4">
-        Recent Events
-      </p>
-      <ScrollArea className="h-[500px]">
-        <div className="space-y-2">
-          {data.recentEvents.map((ev) => (
-            <div key={ev.id} className="p-3 rounded-lg border border-border/40 hover:border-border/60 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full">{ev.event}</span>
-                  {ev.friendName && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
-                      {ev.friendName}
-                    </span>
-                  )}
-                  {ev.sessionId && (
-                    <span className="text-[10px] text-muted-foreground font-mono">
-                      {ev.sessionId.slice(0, 12)}...
-                    </span>
-                  )}
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
+          Recent Events
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[500px]">
+          <div className="space-y-2">
+            {data.recentEvents.map((ev) => (
+              <div key={ev.id} className="p-3 rounded-lg border border-border/40 hover:border-border/60 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{ev.event}</span>
+                    {ev.friendName && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium">
+                        {ev.friendName}
+                      </span>
+                    )}
+                    {ev.sessionId && (
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {ev.sessionId.slice(0, 12)}...
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    {ev.ip && <span>{ev.ip}</span>}
+                    <span>{timeAgo(ev.createdAt)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                  {ev.ip && <span>{ev.ip}</span>}
-                  <span>{timeAgo(ev.createdAt)}</span>
-                </div>
+                {ev.properties && (
+                  <button
+                    onClick={() => setExpanded(expanded === ev.id ? null : ev.id)}
+                    className="text-[10px] text-muted-foreground hover:text-foreground mt-1 underline"
+                  >
+                    {expanded === ev.id ? "Hide" : "Show"} properties
+                  </button>
+                )}
+                {expanded === ev.id && ev.properties && (
+                  <pre className="mt-2 p-2 rounded bg-muted/50 text-[10px] font-mono text-card-foreground overflow-x-auto">
+                    {JSON.stringify(ev.properties, null, 2)}
+                  </pre>
+                )}
               </div>
-              {ev.properties && (
-                <button
-                  onClick={() => setExpanded(expanded === ev.id ? null : ev.id)}
-                  className="text-[10px] text-muted-foreground hover:text-foreground mt-1 underline"
-                >
-                  {expanded === ev.id ? "Hide" : "Show"} properties
-                </button>
-              )}
-              {expanded === ev.id && ev.properties && (
-                <pre className="mt-2 p-2 rounded bg-muted/50 text-[10px] font-mono overflow-x-auto">
-                  {JSON.stringify(ev.properties, null, 2)}
-                </pre>
-              )}
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
-    </MagicCard>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }
 
 // ─── Shared Components ──────────────────────────────────
 
-function MetricCard({ label, value, gradient }: { label: string; value: number; gradient: string }) {
+function MetricCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <MagicCard gradientColor={gradient} className="p-4 text-center">
-      <div className="text-2xl sm:text-3xl font-bold">
-        {value > 0 ? <NumberTicker value={value} /> : "0"}
-      </div>
-      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{label}</p>
-    </MagicCard>
+    <Card className="py-4">
+      <CardContent className="py-0 text-center">
+        <div className="text-2xl sm:text-3xl font-bold text-card-foreground" style={{ color }}>
+          {value > 0 ? <NumberTicker value={value} /> : "0"}
+        </div>
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{label}</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -898,7 +934,7 @@ function CountryBar({ data }: { data: Array<{ country: string; count: number }> 
               className="flex items-center justify-center text-[10px] font-medium transition-all duration-300 cursor-default"
               style={{
                 width: `${width}%`,
-                backgroundColor: `hsl(var(--chart-${(data.indexOf(d) % 5) + 1}))`,
+                backgroundColor: `var(--chart-${(data.indexOf(d) % 5) + 1})`,
                 opacity: hovered && !isHovered ? 0.5 : 1,
               }}
               onMouseEnter={() => setHovered(d.country)}
@@ -917,7 +953,7 @@ function CountryBar({ data }: { data: Array<{ country: string; count: number }> 
           <span key={d.country} className="text-[10px] text-muted-foreground flex items-center gap-1">
             <span
               className="w-2 h-2 rounded-full inline-block"
-              style={{ backgroundColor: `hsl(var(--chart-${(i % 5) + 1}))` }}
+              style={{ backgroundColor: `var(--chart-${(i % 5) + 1})` }}
             />
             {d.country} ({d.count})
           </span>

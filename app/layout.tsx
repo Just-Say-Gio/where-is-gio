@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: "Where Is Gio?",
     description: "See Gio's travel plans across 15+ countries in 2026",
     type: "website",
-    url: "https://whereisgio.com",
+    url: "https://whereisgio.live",
   },
 };
 
