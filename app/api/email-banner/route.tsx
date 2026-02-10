@@ -3,12 +3,12 @@ import { NextRequest } from "next/server";
 import { getCachedSegments } from "@/lib/cache";
 import {
   getCurrentSegment,
-  getCurrentTrip,
   getNextTrip,
   getMonthShortName,
 } from "@/lib/calendar-utils";
 import { getCountryInfo, resolveFlag } from "@/lib/countries";
 import { withApiLogging } from "@/lib/api-logger";
+import { formatTime, getTimezoneLabel, IANA_TIMEZONES } from "@/lib/timezone";
 import type { Trip } from "@/lib/calendar-utils";
 
 export const runtime = "nodejs";
@@ -25,9 +25,7 @@ function formatDateRange(startDate: string, endDate: string): string {
 }
 
 function tripCountryFlags(trip: Trip): string {
-  return trip.countries
-    .map((code) => resolveFlag(code))
-    .join(" ");
+  return trip.countries.map((code) => resolveFlag(code)).join(" ");
 }
 
 function tripCountryNames(trip: Trip, max = 3): string {
@@ -42,7 +40,6 @@ async function handler(req: NextRequest) {
 
   const segments = getCachedSegments();
   const currentSeg = segments ? getCurrentSegment(segments) : null;
-  const currentTrip = segments ? getCurrentTrip(segments) : null;
   const nextTripData = segments ? getNextTrip(segments) : null;
 
   const homeInfo = getCountryInfo("TH");
@@ -52,28 +49,35 @@ async function handler(req: NextRequest) {
   const fg = isDark ? "#fafafa" : "#18181b";
   const mutedFg = isDark ? "#a1a1aa" : "#71717a";
   const dimFg = isDark ? "#71717a" : "#a1a1aa";
+  const subtleBorder = isDark ? "#27272a" : "#e4e4e7";
 
-  // Determine current location text
+  // Current location
+  const gioCC = currentSeg?.countryCode ?? "TH";
+  const isAbroad = currentSeg && gioCC !== "TH";
   let nowText: string;
   let nowColor: string;
-  if (currentSeg && currentSeg.countryCode !== "TH") {
-    const info = getCountryInfo(currentSeg.countryCode);
-    const flag = resolveFlag(currentSeg.countryCode, currentSeg.city);
+  if (isAbroad) {
+    const info = getCountryInfo(gioCC);
+    const flag = resolveFlag(gioCC, currentSeg.city);
     nowText = `${flag} ${currentSeg.city || info.name}`;
     nowColor = info.color;
   } else {
-    nowText = `${homeInfo.flag} Thailand`;
+    nowText = `${homeInfo.flag} Hua Hin, Thailand`;
     nowColor = homeInfo.color;
   }
 
-  // Determine next trip text
+  // Timezone info
+  const gioIana = IANA_TIMEZONES[gioCC] ?? "Asia/Bangkok";
+  const gioTime = formatTime(gioIana);
+  const gioLabel = getTimezoneLabel(gioIana, gioCC);
+  const mtTime = formatTime("America/Denver");
+  const mtLabel = getTimezoneLabel("America/Denver");
+  const amsTime = formatTime("Europe/Amsterdam");
+  const amsLabel = getTimezoneLabel("Europe/Amsterdam");
+
+  // Next trip
   let nextText: string | null = null;
   let nextColor: string = "#3B82F6";
-  if (currentTrip && currentSeg && currentSeg.countryCode !== "TH") {
-    // Currently on a trip — show the full trip info
-    nextText = `${tripCountryFlags(currentTrip)} ${tripCountryNames(currentTrip)} · ${formatDateRange(currentTrip.startDate, currentTrip.endDate)} · ${currentTrip.totalDays}d`;
-    nextColor = getCountryInfo(currentTrip.countries[0]).color;
-  }
   if (nextTripData) {
     const { trip, daysUntil } = nextTripData;
     const firstInfo = getCountryInfo(trip.countries[0]);
@@ -81,9 +85,8 @@ async function handler(req: NextRequest) {
     nextColor = firstInfo.color;
   }
 
-  // Compact banner: 600 x 60 (one line) or 600 x 90 (two lines)
   const hasNext = !!nextText;
-  const height = hasNext ? 90 : 50;
+  const height = hasNext ? 110 : 70;
 
   return new ImageResponse(
     (
@@ -94,15 +97,14 @@ async function handler(req: NextRequest) {
           height: "100%",
           backgroundColor: bg,
           fontFamily: "system-ui, sans-serif",
-          alignItems: "center",
         }}
       >
-        {/* Split accent strip */}
+        {/* Accent strip */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            width: 5,
+            width: 4,
             height: "100%",
             flexShrink: 0,
           }}
@@ -120,11 +122,11 @@ async function handler(req: NextRequest) {
             flexDirection: "column",
             justifyContent: "center",
             flex: 1,
-            padding: hasNext ? "10px 20px" : "8px 20px",
-            gap: 4,
+            padding: "8px 16px",
+            gap: 3,
           }}
         >
-          {/* Line 1: current location */}
+          {/* Line 1: Location + Gio's time */}
           <div
             style={{
               display: "flex",
@@ -132,39 +134,79 @@ async function handler(req: NextRequest) {
               gap: 8,
             }}
           >
-            <span style={{ fontSize: 18, fontWeight: 600, color: fg }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: fg }}>
               {nowText}
             </span>
-            {currentSeg && currentSeg.countryCode !== "TH" && (
+            {isAbroad && (
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 4,
+                  gap: 3,
                 }}
               >
                 <div
                   style={{
-                    width: 6,
-                    height: 6,
+                    width: 5,
+                    height: 5,
                     borderRadius: "50%",
                     backgroundColor: nowColor,
                   }}
                 />
                 <span
-                  style={{ fontSize: 12, fontWeight: 600, color: nowColor }}
+                  style={{ fontSize: 11, fontWeight: 600, color: nowColor }}
                 >
                   now
                 </span>
               </div>
             )}
+            <span style={{ fontSize: 11, color: dimFg, marginLeft: "auto" }}>
+              {gioTime} {gioLabel}
+            </span>
           </div>
 
-          {/* Line 2: next trip */}
-          {nextText && (
-            <span style={{ fontSize: 14, color: mutedFg, fontWeight: 500 }}>
-              {nextText}
+          {/* Line 2: Timezone references */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              fontSize: 11,
+              color: dimFg,
+            }}
+          >
+            <span>
+              🏔️ {mtTime} {mtLabel}
             </span>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span>
+              🇳🇱 {amsTime} {amsLabel}
+            </span>
+            {gioCC !== "TH" && (
+              <>
+                <span style={{ opacity: 0.4 }}>·</span>
+                <span>
+                  🇹🇭 {formatTime("Asia/Bangkok")} ICT
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Line 3: Next trip */}
+          {nextText && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                borderTop: `1px solid ${subtleBorder}`,
+                paddingTop: 4,
+                marginTop: 2,
+              }}
+            >
+              <span style={{ fontSize: 12, color: mutedFg, fontWeight: 500 }}>
+                {nextText}
+              </span>
+            </div>
           )}
         </div>
 
@@ -172,12 +214,12 @@ async function handler(req: NextRequest) {
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            padding: "0 14px",
+            alignItems: "flex-end",
+            padding: "0 10px 6px 0",
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 10, color: dimFg }}>
+          <span style={{ fontSize: 9, color: dimFg }}>
             whereisgio.live
           </span>
         </div>
