@@ -1,11 +1,13 @@
 import { getCachedSegments } from "@/lib/cache";
 import {
   getCurrentSegment,
-  getNextSegment,
+  getCurrentTrip,
+  getNextTrip,
   getMonthShortName,
 } from "@/lib/calendar-utils";
 import { getCountryInfo, resolveFlag } from "@/lib/countries";
 import Link from "next/link";
+import type { Trip } from "@/lib/calendar-utils";
 
 export const metadata = {
   title: "Where Is Gio — Next Trip",
@@ -23,29 +25,116 @@ function formatDateRange(startDate: string, endDate: string): string {
   return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
 }
 
-function getDuration(startDate: string, endDate: string): number {
-  const start = new Date(startDate + "T00:00:00").getTime();
-  const end = new Date(endDate + "T00:00:00").getTime();
-  return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+function TripCard({ trip, daysUntil, label }: { trip: Trip; daysUntil?: number; label: string }) {
+  const firstInfo = getCountryInfo(trip.countries[0]);
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {label}
+      </p>
+      <div
+        className="rounded-xl border p-5 space-y-4"
+        style={{ borderColor: firstInfo.color, borderLeftWidth: 4 }}
+      >
+        {/* Country flags row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {trip.countries.map((code, i) => {
+            const info = getCountryInfo(code);
+            const flag = resolveFlag(code);
+            return (
+              <div key={code} className="flex items-center gap-1.5">
+                {i > 0 && (
+                  <span className="text-xs text-muted-foreground">→</span>
+                )}
+                <span className="text-2xl">{flag}</span>
+                <span className="text-sm font-medium">{info.name}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Date range + duration + countdown */}
+        <div className="flex items-center gap-3 text-sm flex-wrap">
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-1.5">
+            <span className="font-medium">
+              {formatDateRange(trip.startDate, trip.endDate)}
+            </span>
+            <span className="text-muted-foreground">
+              · {trip.totalDays} days
+            </span>
+          </div>
+          {daysUntil !== undefined && daysUntil > 0 && (
+            <span
+              className="font-semibold"
+              style={{ color: firstInfo.color }}
+            >
+              in {daysUntil} day{daysUntil !== 1 ? "s" : ""}
+            </span>
+          )}
+          {daysUntil === 0 && (
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: firstInfo.color }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-2 w-2"
+                  style={{ backgroundColor: firstInfo.color }}
+                />
+              </span>
+              <span
+                className="text-sm font-semibold"
+                style={{ color: firstInfo.color }}
+              >
+                right now
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Per-segment breakdown */}
+        {trip.segments.length > 1 && (
+          <div className="space-y-1.5 pt-1 border-t border-border/30">
+            {trip.segments.map((seg, i) => {
+              const info = getCountryInfo(seg.countryCode);
+              const flag = resolveFlag(seg.countryCode, seg.city);
+              const start = new Date(seg.startDate + "T00:00:00");
+              const end = new Date(seg.endDate + "T00:00:00");
+              const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                >
+                  <span>{flag}</span>
+                  <span className="font-medium text-foreground">
+                    {seg.city || info.name}
+                  </span>
+                  <span>·</span>
+                  <span>
+                    {getMonthShortName(start.getMonth())} {start.getDate()}–{getMonthShortName(end.getMonth())} {end.getDate()}
+                  </span>
+                  <span>· {days}d</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function EmailNextPage() {
   const segments = getCachedSegments();
-  const current = segments ? getCurrentSegment(segments) : null;
-  const next = segments ? getNextSegment(segments) : null;
+  const currentSeg = segments ? getCurrentSegment(segments) : null;
+  const currentTrip = segments ? getCurrentTrip(segments) : null;
+  const nextTripData = segments ? getNextTrip(segments) : null;
 
-  const currentInfo = current ? getCountryInfo(current.countryCode) : null;
-  const currentFlag = current
-    ? resolveFlag(current.countryCode, current.city)
-    : null;
-
-  const nextInfo = next ? getCountryInfo(next.segment.countryCode) : null;
-  const nextFlag = next
-    ? resolveFlag(next.segment.countryCode, next.segment.city)
-    : null;
-
-  // Default home info
   const homeInfo = getCountryInfo("TH");
+  const isOnTrip = currentTrip && currentSeg && currentSeg.countryCode !== "TH";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -61,119 +150,38 @@ export default function EmailNextPage() {
         </div>
 
         {/* Current location */}
-        <div className="space-y-3">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            {current ? "Currently in" : "Home base"}
-          </p>
-          <div
-            className="rounded-xl border p-5 space-y-3"
-            style={{
-              borderColor: currentInfo?.color ?? homeInfo.color,
-              borderLeftWidth: 4,
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">
-                {currentFlag ?? homeInfo.flag}
-              </span>
-              <div>
-                <p className="text-xl font-bold">
-                  {current
-                    ? current.city || current.country
-                    : "Thailand"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {current
-                    ? currentInfo?.name ?? current.country
-                    : "Hua Hin"}
-                </p>
-              </div>
-            </div>
-            {current && (
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-1.5">
-                  <span className="font-medium">
-                    {formatDateRange(current.startDate, current.endDate)}
-                  </span>
-                  <span className="text-muted-foreground">
-                    · {getDuration(current.startDate, current.endDate)} days
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="relative flex h-2 w-2"
-                  >
-                    <span
-                      className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                      style={{ backgroundColor: currentInfo?.color }}
-                    />
-                    <span
-                      className="relative inline-flex rounded-full h-2 w-2"
-                      style={{ backgroundColor: currentInfo?.color }}
-                    />
-                  </span>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: currentInfo?.color }}
-                  >
-                    right now
-                  </span>
-                </div>
-              </div>
-            )}
-            {!current && (
-              <p className="text-sm text-muted-foreground">
-                Between trips — back home in Thailand
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Next trip */}
-        {next && (
+        {isOnTrip ? (
+          <TripCard trip={currentTrip!} daysUntil={0} label="Currently traveling" />
+        ) : (
           <div className="space-y-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Next trip
+              Home base
             </p>
             <div
               className="rounded-xl border p-5 space-y-3"
-              style={{
-                borderColor: nextInfo?.color,
-                borderLeftWidth: 4,
-              }}
+              style={{ borderColor: homeInfo.color, borderLeftWidth: 4 }}
             >
               <div className="flex items-center gap-3">
-                <span className="text-4xl">{nextFlag}</span>
+                <span className="text-4xl">{homeInfo.flag}</span>
                 <div>
-                  <p className="text-xl font-bold">
-                    {next.segment.city || next.segment.country}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {nextInfo?.name ?? next.segment.country}
-                  </p>
+                  <p className="text-xl font-bold">Thailand</p>
+                  <p className="text-sm text-muted-foreground">Hua Hin</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-1.5">
-                  <span className="font-medium">
-                    {formatDateRange(
-                      next.segment.startDate,
-                      next.segment.endDate
-                    )}
-                  </span>
-                  <span className="text-muted-foreground">
-                    · {getDuration(next.segment.startDate, next.segment.endDate)} days
-                  </span>
-                </div>
-                <span
-                  className="font-semibold"
-                  style={{ color: nextInfo?.color }}
-                >
-                  in {next.daysUntil} day{next.daysUntil !== 1 ? "s" : ""}
-                </span>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Between trips — back home in Thailand
+              </p>
             </div>
           </div>
+        )}
+
+        {/* Next trip */}
+        {nextTripData && (
+          <TripCard
+            trip={nextTripData.trip}
+            daysUntil={nextTripData.daysUntil}
+            label="Next trip"
+          />
         )}
 
         {/* CTA */}

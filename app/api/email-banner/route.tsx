@@ -3,11 +3,13 @@ import { NextRequest } from "next/server";
 import { getCachedSegments } from "@/lib/cache";
 import {
   getCurrentSegment,
-  getNextSegment,
+  getCurrentTrip,
+  getNextTrip,
   getMonthShortName,
 } from "@/lib/calendar-utils";
 import { getCountryInfo, resolveFlag } from "@/lib/countries";
 import { withApiLogging } from "@/lib/api-logger";
+import type { Trip } from "@/lib/calendar-utils";
 
 export const runtime = "nodejs";
 
@@ -17,119 +19,72 @@ function formatDateRange(startDate: string, endDate: string): string {
   const startMonth = getMonthShortName(start.getMonth());
   const endMonth = getMonthShortName(end.getMonth());
   if (startMonth === endMonth) {
-    return `${startMonth} ${start.getDate()} – ${end.getDate()}`;
+    return `${startMonth} ${start.getDate()}–${end.getDate()}`;
   }
   return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
 }
 
-function getDuration(startDate: string, endDate: string): number {
-  const start = new Date(startDate + "T00:00:00").getTime();
-  const end = new Date(endDate + "T00:00:00").getTime();
-  return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+function tripCountryFlags(trip: Trip): string {
+  return trip.countries
+    .map((code) => resolveFlag(code))
+    .join(" ");
+}
+
+function tripCountryNames(trip: Trip, max = 3): string {
+  const names = trip.countries.map((c) => getCountryInfo(c).name);
+  if (names.length <= max) return names.join(" → ");
+  return names.slice(0, max).join(" → ") + ` +${names.length - max}`;
 }
 
 async function handler(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const theme = searchParams.get("theme") === "light" ? "light" : "dark";
-  const style = searchParams.get("style") === "minimal" ? "minimal" : "full";
 
   const segments = getCachedSegments();
-  const current = segments ? getCurrentSegment(segments) : null;
-  const next = segments ? getNextSegment(segments) : null;
-
-  const currentInfo = current ? getCountryInfo(current.countryCode) : null;
-  const currentFlag = current
-    ? resolveFlag(current.countryCode, current.city)
-    : null;
-  const nextInfo = next ? getCountryInfo(next.segment.countryCode) : null;
-  const nextFlag = next
-    ? resolveFlag(next.segment.countryCode, next.segment.city)
-    : null;
+  const currentSeg = segments ? getCurrentSegment(segments) : null;
+  const currentTrip = segments ? getCurrentTrip(segments) : null;
+  const nextTripData = segments ? getNextTrip(segments) : null;
 
   const homeInfo = getCountryInfo("TH");
-  const accentColor = currentInfo?.color ?? nextInfo?.color ?? homeInfo.color;
 
   const isDark = theme === "dark";
   const bg = isDark ? "#18181b" : "#ffffff";
   const fg = isDark ? "#fafafa" : "#18181b";
   const mutedFg = isDark ? "#a1a1aa" : "#71717a";
-  const cardBg = isDark ? "#27272a" : "#f4f4f5";
-  const dividerColor = isDark ? "#3f3f46" : "#e4e4e7";
+  const dimFg = isDark ? "#71717a" : "#a1a1aa";
 
-  // --- Minimal style (600x100) — two lines ---
-  if (style === "minimal") {
-    const currentLine = current
-      ? `Now: ${currentFlag}  ${current.city || current.country} · ${formatDateRange(current.startDate, current.endDate)}`
-      : `${homeInfo.flag}  Home in Thailand`;
-
-    const nextLine = next
-      ? `Next: ${nextFlag}  ${next.segment.city || next.segment.country} · ${formatDateRange(next.segment.startDate, next.segment.endDate)} · ${getDuration(next.segment.startDate, next.segment.endDate)}d · in ${next.daysUntil} day${next.daysUntil !== 1 ? "s" : ""}`
-      : null;
-
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            width: "100%",
-            height: "100%",
-            backgroundColor: bg,
-            fontFamily: "system-ui, sans-serif",
-          }}
-        >
-          <div
-            style={{
-              width: 6,
-              height: "100%",
-              backgroundColor: accentColor,
-              flexShrink: 0,
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              flex: 1,
-              padding: "0 24px",
-              gap: 6,
-            }}
-          >
-            <span style={{ fontSize: 20, color: fg, fontWeight: 600 }}>
-              {currentLine}
-            </span>
-            {nextLine && (
-              <span style={{ fontSize: 16, color: mutedFg, fontWeight: 500 }}>
-                {nextLine}
-              </span>
-            )}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              padding: "0 16px 8px 0",
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontSize: 12, color: mutedFg, opacity: 0.7 }}>
-              whereisgio.live
-            </span>
-          </div>
-        </div>
-      ),
-      {
-        width: 600,
-        height: nextLine ? 100 : 70,
-        headers: {
-          "Cache-Control": "public, max-age=3600, s-maxage=3600",
-        },
-      }
-    );
+  // Determine current location text
+  let nowText: string;
+  let nowColor: string;
+  if (currentSeg && currentSeg.countryCode !== "TH") {
+    const info = getCountryInfo(currentSeg.countryCode);
+    const flag = resolveFlag(currentSeg.countryCode, currentSeg.city);
+    nowText = `${flag} ${currentSeg.city || info.name}`;
+    nowColor = info.color;
+  } else {
+    nowText = `${homeInfo.flag} Thailand`;
+    nowColor = homeInfo.color;
   }
 
-  // --- Full style (600x250) — both current + next ---
+  // Determine next trip text
+  let nextText: string | null = null;
+  let nextColor: string = "#3B82F6";
+  if (currentTrip && currentSeg && currentSeg.countryCode !== "TH") {
+    // Currently on a trip — show the full trip info
+    nextText = `${tripCountryFlags(currentTrip)} ${tripCountryNames(currentTrip)} · ${formatDateRange(currentTrip.startDate, currentTrip.endDate)} · ${currentTrip.totalDays}d`;
+    nextColor = getCountryInfo(currentTrip.countries[0]).color;
+  }
+  if (nextTripData) {
+    const { trip, daysUntil } = nextTripData;
+    const firstInfo = getCountryInfo(trip.countries[0]);
+    nextText = `Next: ${tripCountryFlags(trip)} ${tripCountryNames(trip)} · ${formatDateRange(trip.startDate, trip.endDate)} · ${trip.totalDays}d · in ${daysUntil}d`;
+    nextColor = firstInfo.color;
+  }
+
+  // Compact banner: 600 x 60 (one line) or 600 x 90 (two lines)
+  const hasNext = !!nextText;
+  const height = hasNext ? 90 : 50;
+
   return new ImageResponse(
     (
       <div
@@ -139,202 +94,77 @@ async function handler(req: NextRequest) {
           height: "100%",
           backgroundColor: bg,
           fontFamily: "system-ui, sans-serif",
+          alignItems: "center",
         }}
       >
-        {/* Left accent — gradient from current to next color */}
+        {/* Split accent strip */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            width: 8,
+            width: 5,
             height: "100%",
             flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              backgroundColor: currentInfo?.color ?? homeInfo.color,
-            }}
-          />
-          {next && (
-            <div
-              style={{
-                flex: 1,
-                backgroundColor: nextInfo?.color ?? "#3B82F6",
-              }}
-            />
+          <div style={{ flex: 1, backgroundColor: nowColor }} />
+          {hasNext && (
+            <div style={{ flex: 1, backgroundColor: nextColor }} />
           )}
         </div>
 
-        {/* Main content */}
+        {/* Content */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             flex: 1,
-            padding: "20px 28px",
-            gap: 12,
+            padding: hasNext ? "10px 20px" : "8px 20px",
+            gap: 4,
           }}
         >
-          {/* Current location row */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 11,
-                color: mutedFg,
-                fontWeight: 500,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-              }}
-            >
-              {current ? "Currently in" : "Home base"}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 32 }}>
-                {currentFlag ?? homeInfo.flag}
-              </span>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 1 }}
-              >
-                <span style={{ fontSize: 24, fontWeight: 700, color: fg }}>
-                  {current ? current.city || current.country : "Thailand"}
-                </span>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {current && (
-                    <span style={{ fontSize: 13, color: mutedFg }}>
-                      {formatDateRange(current.startDate, current.endDate)} ·{" "}
-                      {getDuration(current.startDate, current.endDate)}d
-                    </span>
-                  )}
-                  {current && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 7,
-                          height: 7,
-                          borderRadius: "50%",
-                          backgroundColor: currentInfo?.color,
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: currentInfo?.color,
-                        }}
-                      >
-                        right now
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Divider + next trip */}
-          {next && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {/* Line 1: current location */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span style={{ fontSize: 18, fontWeight: 600, color: fg }}>
+              {nowText}
+            </span>
+            {currentSeg && currentSeg.countryCode !== "TH" && (
               <div
                 style={{
-                  height: 1,
-                  backgroundColor: dividerColor,
-                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
-              />
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 4 }}
               >
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 11,
-                    color: mutedFg,
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase" as const,
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    backgroundColor: nowColor,
                   }}
+                />
+                <span
+                  style={{ fontSize: 12, fontWeight: 600, color: nowColor }}
                 >
-                  Next trip
-                </div>
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: 10 }}
-                >
-                  <span style={{ fontSize: 28 }}>{nextFlag}</span>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <span
-                      style={{ fontSize: 20, fontWeight: 700, color: fg }}
-                    >
-                      {next.segment.city || next.segment.country}
-                    </span>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          backgroundColor: cardBg,
-                          borderRadius: 6,
-                          padding: "3px 8px",
-                          gap: 6,
-                        }}
-                      >
-                        <span
-                          style={{ fontSize: 13, color: fg, fontWeight: 500 }}
-                        >
-                          {formatDateRange(
-                            next.segment.startDate,
-                            next.segment.endDate
-                          )}
-                        </span>
-                        <span style={{ fontSize: 11, color: mutedFg }}>
-                          ·{" "}
-                          {getDuration(
-                            next.segment.startDate,
-                            next.segment.endDate
-                          )}
-                          d
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: nextInfo?.color,
-                        }}
-                      >
-                        in {next.daysUntil} day
-                        {next.daysUntil !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  now
+                </span>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Line 2: next trip */}
+          {nextText && (
+            <span style={{ fontSize: 14, color: mutedFg, fontWeight: 500 }}>
+              {nextText}
+            </span>
           )}
         </div>
 
@@ -342,13 +172,12 @@ async function handler(req: NextRequest) {
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "flex-end",
-            padding: "0 14px 10px 0",
+            alignItems: "center",
+            padding: "0 14px",
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 11, color: mutedFg, opacity: 0.6 }}>
+          <span style={{ fontSize: 10, color: dimFg }}>
             whereisgio.live
           </span>
         </div>
@@ -356,7 +185,7 @@ async function handler(req: NextRequest) {
     ),
     {
       width: 600,
-      height: next ? 250 : 160,
+      height,
       headers: {
         "Cache-Control": "public, max-age=3600, s-maxage=3600",
       },

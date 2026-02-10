@@ -181,3 +181,91 @@ export function getTodayString(): string {
     String(today.getDate()).padStart(2, "0")
   );
 }
+
+// --- Trip grouping ---
+// A "trip" = all consecutive non-Thailand segments between Thailand stays.
+// Leaving TH starts a trip, returning to TH ends it.
+
+export interface Trip {
+  segments: TravelSegment[];
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  countries: string[]; // unique country codes in visit order
+}
+
+const HOME_CODE = "TH";
+
+function buildTrip(segments: TravelSegment[]): Trip {
+  const countries: string[] = [];
+  for (const seg of segments) {
+    if (!countries.includes(seg.countryCode)) {
+      countries.push(seg.countryCode);
+    }
+  }
+  const startDate = segments[0].startDate;
+  const endDate = segments[segments.length - 1].endDate;
+  const start = new Date(startDate + "T00:00:00").getTime();
+  const end = new Date(endDate + "T00:00:00").getTime();
+  const totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  return { segments, startDate, endDate, totalDays, countries };
+}
+
+export function getTrips(segments: TravelSegment[]): Trip[] {
+  const sorted = [...segments].sort((a, b) =>
+    a.startDate.localeCompare(b.startDate)
+  );
+  const trips: Trip[] = [];
+  let current: TravelSegment[] = [];
+
+  for (const seg of sorted) {
+    if (seg.countryCode === HOME_CODE) {
+      if (current.length > 0) {
+        trips.push(buildTrip(current));
+        current = [];
+      }
+    } else {
+      current.push(seg);
+    }
+  }
+  if (current.length > 0) {
+    trips.push(buildTrip(current));
+  }
+  return trips;
+}
+
+export function getCurrentTrip(
+  segments: TravelSegment[]
+): Trip | null {
+  const trips = getTrips(segments);
+  const todayStr = getTodayString();
+  const todayTime = new Date(todayStr + "T00:00:00").getTime();
+
+  for (const trip of trips) {
+    const start = new Date(trip.startDate + "T00:00:00").getTime();
+    const end = new Date(trip.endDate + "T00:00:00").getTime();
+    if (todayTime >= start && todayTime <= end) {
+      return trip;
+    }
+  }
+  return null;
+}
+
+export function getNextTrip(
+  segments: TravelSegment[]
+): { trip: Trip; daysUntil: number } | null {
+  const trips = getTrips(segments);
+  const todayStr = getTodayString();
+  const todayTime = new Date(todayStr + "T00:00:00").getTime();
+
+  for (const trip of trips) {
+    const start = new Date(trip.startDate + "T00:00:00").getTime();
+    if (start > todayTime) {
+      const daysUntil = Math.round(
+        (start - todayTime) / (1000 * 60 * 60 * 24)
+      );
+      return { trip, daysUntil };
+    }
+  }
+  return null;
+}
