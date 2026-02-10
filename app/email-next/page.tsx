@@ -6,6 +6,7 @@ import {
   getMonthShortName,
 } from "@/lib/calendar-utils";
 import { getCountryInfo, resolveFlag } from "@/lib/countries";
+import { EmailNextTimezone } from "@/components/email-next-timezone";
 import Link from "next/link";
 import type { Trip } from "@/lib/calendar-utils";
 
@@ -183,6 +184,9 @@ export default function EmailNextPage() {
             label="Next trip"
           />
         )}
+
+        {/* Timezone */}
+        <EmailNextTimezone gioCountryCode={currentSeg?.countryCode ?? "TH"} />
 
         {/* CTA */}
         <div className="pt-4 space-y-3">
