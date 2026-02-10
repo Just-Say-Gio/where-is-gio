@@ -8,7 +8,7 @@ import {
 } from "@/lib/calendar-utils";
 import { getCountryInfo, resolveFlag } from "@/lib/countries";
 import { withApiLogging } from "@/lib/api-logger";
-import { formatTime, getTimezoneLabel, IANA_TIMEZONES } from "@/lib/timezone";
+import { getUtcOffset, getTimezoneLabel, IANA_TIMEZONES } from "@/lib/timezone";
 import type { Trip } from "@/lib/calendar-utils";
 
 export const runtime = "nodejs";
@@ -24,14 +24,16 @@ function formatDateRange(startDate: string, endDate: string): string {
   return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
 }
 
-function tripCountryFlags(trip: Trip): string {
-  return trip.countries.map((code) => resolveFlag(code)).join(" ");
+function formatUtcOffset(hours: number): string {
+  const sign = hours >= 0 ? "+" : "";
+  return Number.isInteger(hours) ? `${sign}${hours}` : `${sign}${hours.toFixed(1)}`;
 }
 
-function tripCountryNames(trip: Trip, max = 3): string {
-  const names = trip.countries.map((c) => getCountryInfo(c).name);
-  if (names.length <= max) return names.join(" → ");
-  return names.slice(0, max).join(" → ") + ` +${names.length - max}`;
+function formatDiffBehind(gioOffset: number, refOffset: number): string {
+  const diff = Math.abs(gioOffset - refOffset);
+  if (diff < 0.5) return "same time";
+  const hours = Number.isInteger(diff) ? `${diff}` : diff.toFixed(1);
+  return gioOffset > refOffset ? `${hours}h behind` : `${hours}h ahead`;
 }
 
 async function handler(req: NextRequest) {
@@ -42,184 +44,201 @@ async function handler(req: NextRequest) {
   const currentSeg = segments ? getCurrentSegment(segments) : null;
   const nextTripData = segments ? getNextTrip(segments) : null;
 
-  const homeInfo = getCountryInfo("TH");
-
   const isDark = theme === "dark";
   const bg = isDark ? "#18181b" : "#ffffff";
   const fg = isDark ? "#fafafa" : "#18181b";
   const mutedFg = isDark ? "#a1a1aa" : "#71717a";
-  const dimFg = isDark ? "#71717a" : "#a1a1aa";
-  const subtleBorder = isDark ? "#27272a" : "#e4e4e7";
+  const dimFg = isDark ? "#52525b" : "#a1a1aa";
+  const labelFg = isDark ? "#71717a" : "#a1a1aa";
+  const divider = isDark ? "#27272a" : "#e4e4e7";
+  const accentBg = isDark ? "#27272a" : "#f4f4f5";
 
   // Current location
   const gioCC = currentSeg?.countryCode ?? "TH";
   const isAbroad = currentSeg && gioCC !== "TH";
-  let nowText: string;
-  let nowColor: string;
-  if (isAbroad) {
-    const info = getCountryInfo(gioCC);
-    const flag = resolveFlag(gioCC, currentSeg.city);
-    nowText = `${flag} ${currentSeg.city || info.name}`;
-    nowColor = info.color;
-  } else {
-    nowText = `${homeInfo.flag} Hua Hin, Thailand`;
-    nowColor = homeInfo.color;
-  }
+  const countryInfo = getCountryInfo(gioCC);
+  const homeInfo = getCountryInfo("TH");
 
-  // Timezone info
+  const locationFlag = isAbroad
+    ? resolveFlag(gioCC, currentSeg.city)
+    : homeInfo.flag;
+  const locationName = isAbroad
+    ? currentSeg.city || countryInfo.name
+    : "Hua Hin, Thailand";
+  const accentColor = isAbroad ? countryInfo.color : homeInfo.color;
+
+  // Timezone info (static — offsets and abbreviations, no live times)
   const gioIana = IANA_TIMEZONES[gioCC] ?? "Asia/Bangkok";
-  const gioTime = formatTime(gioIana);
+  const gioOffset = getUtcOffset(gioIana);
   const gioLabel = getTimezoneLabel(gioIana, gioCC);
-  const mtTime = formatTime("America/Denver");
-  const mtLabel = getTimezoneLabel("America/Denver");
-  const amsTime = formatTime("Europe/Amsterdam");
-  const amsLabel = getTimezoneLabel("Europe/Amsterdam");
+  const gioUtc = `UTC${formatUtcOffset(gioOffset)}`;
+
+  const mtIana = "America/Denver";
+  const mtOffset = getUtcOffset(mtIana);
+  const mtLabel = getTimezoneLabel(mtIana);
+  const mtDiff = formatDiffBehind(gioOffset, mtOffset);
+
+  const amsIana = "Europe/Amsterdam";
+  const amsOffset = getUtcOffset(amsIana);
+  const amsLabel = getTimezoneLabel(amsIana);
+  const amsDiff = formatDiffBehind(gioOffset, amsOffset);
+
+  // Thailand (only if abroad)
+  let thDiff: string | null = null;
+  if (gioCC !== "TH") {
+    const thOffset = getUtcOffset("Asia/Bangkok");
+    thDiff = formatDiffBehind(gioOffset, thOffset);
+  }
 
   // Next trip
-  let nextText: string | null = null;
-  let nextColor: string = "#3B82F6";
-  if (nextTripData) {
-    const { trip, daysUntil } = nextTripData;
-    const firstInfo = getCountryInfo(trip.countries[0]);
-    nextText = `Next: ${tripCountryFlags(trip)} ${tripCountryNames(trip)} · ${formatDateRange(trip.startDate, trip.endDate)} · ${trip.totalDays}d · in ${daysUntil}d`;
-    nextColor = firstInfo.color;
-  }
-
-  const hasNext = !!nextText;
-  const height = hasNext ? 110 : 70;
+  const hasNext = !!nextTripData;
+  const height = hasNext ? 150 : 100;
 
   return new ImageResponse(
     (
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           width: "100%",
           height: "100%",
           backgroundColor: bg,
           fontFamily: "system-ui, sans-serif",
+          padding: "14px 20px",
+          gap: 0,
         }}
       >
-        {/* Accent strip */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: 4,
-            height: "100%",
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ flex: 1, backgroundColor: nowColor }} />
-          {hasNext && (
-            <div style={{ flex: 1, backgroundColor: nextColor }} />
-          )}
-        </div>
-
-        {/* Content */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            flex: 1,
-            padding: "8px 16px",
-            gap: 3,
-          }}
-        >
-          {/* Line 1: Location + Gio's time */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 16, fontWeight: 600, color: fg }}>
-              {nowText}
+        {/* Top section: Location + timezone */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {/* Location row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Accent dot */}
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: accentColor,
+                flexShrink: 0,
+              }}
+            />
+            <span style={{ fontSize: 17, fontWeight: 700, color: fg }}>
+              {locationFlag} {locationName}
             </span>
             {isAbroad && (
-              <div
+              <span
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 3,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: accentColor,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
                 }}
               >
-                <div
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    backgroundColor: nowColor,
-                  }}
-                />
-                <span
-                  style={{ fontSize: 11, fontWeight: 600, color: nowColor }}
-                >
-                  now
-                </span>
-              </div>
+                traveling
+              </span>
             )}
-            <span style={{ fontSize: 11, color: dimFg, marginLeft: "auto" }}>
-              {gioTime} {gioLabel}
-            </span>
           </div>
 
-          {/* Line 2: Timezone references */}
+          {/* Timezone row */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 6,
+              marginLeft: 18,
               fontSize: 11,
-              color: dimFg,
             }}
           >
-            <span>
-              🏔️ {mtTime} {mtLabel}
-            </span>
-            <span style={{ opacity: 0.4 }}>·</span>
-            <span>
-              🇳🇱 {amsTime} {amsLabel}
-            </span>
-            {gioCC !== "TH" && (
-              <>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <span>
-                  🇹🇭 {formatTime("Asia/Bangkok")} ICT
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Line 3: Next trip */}
-          {nextText && (
+            {/* Gio's timezone badge */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                borderTop: `1px solid ${subtleBorder}`,
-                paddingTop: 4,
-                marginTop: 2,
+                backgroundColor: accentBg,
+                borderRadius: 4,
+                padding: "2px 7px",
+                gap: 4,
               }}
             >
-              <span style={{ fontSize: 12, color: mutedFg, fontWeight: 500 }}>
-                {nextText}
-              </span>
+              <span style={{ fontWeight: 600, color: fg }}>{gioLabel}</span>
+              <span style={{ color: dimFg }}>{gioUtc}</span>
             </div>
-          )}
+
+            <span style={{ color: dimFg }}>·</span>
+            <span style={{ color: mutedFg }}>
+              🏔️ {mtLabel} {mtDiff}
+            </span>
+            <span style={{ color: dimFg }}>·</span>
+            <span style={{ color: mutedFg }}>
+              🇳🇱 {amsLabel} {amsDiff}
+            </span>
+            {thDiff && (
+              <>
+                <span style={{ color: dimFg }}>·</span>
+                <span style={{ color: mutedFg }}>
+                  🇹🇭 ICT {thDiff}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Watermark */}
+        {/* Divider + Next trip */}
+        {hasNext && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              marginTop: 10,
+              borderTop: `1px solid ${divider}`,
+              paddingTop: 10,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Flags */}
+              <span style={{ fontSize: 16 }}>
+                {nextTripData.trip.countries.map((c) => resolveFlag(c)).join("  ")}
+              </span>
+
+              {/* Date + duration + countdown */}
+              <span style={{ fontSize: 12, color: mutedFg, fontWeight: 500 }}>
+                {formatDateRange(nextTripData.trip.startDate, nextTripData.trip.endDate)} · {nextTripData.trip.totalDays} days
+              </span>
+
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: getCountryInfo(nextTripData.trip.countries[0]).color,
+                }}
+              >
+                in {nextTripData.daysUntil} day{nextTripData.daysUntil !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
         <div
           style={{
             display: "flex",
-            alignItems: "flex-end",
-            padding: "0 10px 6px 0",
-            flexShrink: 0,
+            alignItems: "center",
+            marginTop: "auto",
           }}
         >
-          <span style={{ fontSize: 9, color: dimFg }}>
+          <span style={{ fontSize: 10, color: labelFg }}>
+            More info →
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              color: mutedFg,
+              fontWeight: 600,
+              marginLeft: 4,
+            }}
+          >
             whereisgio.live
           </span>
         </div>
