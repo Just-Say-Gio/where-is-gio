@@ -10,6 +10,8 @@ import { EmailNextTimezone } from "@/components/email-next-timezone";
 import Link from "next/link";
 import type { Trip } from "@/lib/calendar-utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Where Is Gio — Next Trip",
   description: "See where Gio is traveling next",
