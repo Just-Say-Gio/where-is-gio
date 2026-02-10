@@ -85,7 +85,7 @@ async function handler(req: NextRequest) {
 
   // Next trip
   const hasNext = !!nextTripData;
-  const height = hasNext ? 120 : 76;
+  const height = hasNext ? 130 : 76;
 
   return new ImageResponse(
     (
@@ -146,13 +146,34 @@ async function handler(req: NextRequest) {
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              marginTop: 10,
-              borderTop: `1px solid ${divider}`,
-              paddingTop: 10,
-              gap: 10,
+              flexDirection: "column",
+              marginTop: 8,
+              gap: 6,
             }}
           >
+            {/* Divider text */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <div style={{ flex: 1, height: 1, backgroundColor: divider }} />
+              <span style={{ fontSize: 9, color: labelFg, whiteSpace: "nowrap" }}>
+                Upcoming travel — responses may be delayed
+              </span>
+              <div style={{ flex: 1, height: 1, backgroundColor: divider }} />
+            </div>
+
+            {/* Flags + dates row */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
             {/* Flags */}
             <span style={{ fontSize: 15, letterSpacing: "0.1em" }}>
               {nextTripData.trip.countries.map((c) => resolveFlag(c)).join(" ")}
@@ -177,6 +198,7 @@ async function handler(req: NextRequest) {
                 whereisgio.live
               </span>
             </div>
+          </div>
           </div>
         )}
 
